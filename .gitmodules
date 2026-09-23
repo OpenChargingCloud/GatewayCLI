@@ -19,3 +19,6 @@
 [submodule "libs/Gateway"]
 	path = libs/Gateway
 	url = https://github.com/OpenChargingCloud/Gateway.git
+[submodule "libs/ChargyCore.NET"]
+	path = libs/ChargyCore.NET
+	url = https://github.com/OpenChargingCloud/ChargyCore.NET.git

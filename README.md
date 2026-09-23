@@ -1,5 +1,7 @@
 # GatewayCLI
 
+[![CI](https://github.com/OpenChargingCloud/GatewayCLI/actions/workflows/ci.yml/badge.svg)](https://github.com/OpenChargingCloud/GatewayCLI/actions/workflows/ci.yml)
+
 One (OCPP) gateway, with a web interface and a prompt, until 'quit' or Ctrl+C.
 
 A gateway sits between charging stations and whatever they talk to - a CSMS,
@@ -153,6 +155,7 @@ change, without rebuilding the C# side.
 | `libs/Gateway/Gateway/Frontend/` | the web interface: TypeScript and SCSS, bundled by webpack |
 | `libs/Gateway/GatewayTests/` | what the configuration may say, and what it may not |
 | `libs/WWCP_OCPP/` | the protocol, and the OCPP gateway the forwarding will be built on |
+| `.github/workflows/` | what runs on every push |
 
 The command line is this program's vocabulary and nothing else - the switches
 it is started with and the commands it can be typed at. What a gateway *is*,
