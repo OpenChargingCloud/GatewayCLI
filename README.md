@@ -146,18 +146,64 @@ gateway:2353> help
 ```
 
 `help` lists what can be typed, `quit` leaves, **Tab** completes and **↑**
-walks back through what was typed before. There are no commands of the
-gateway's own yet - a new one is one file in `GatewayCLI/CLI/`, found by
-itself.
+walks back through what was typed before. A command is one file in
+`GatewayCLI/CLI/CLICommands/`, found by itself.
+
+`syncNTS` is **Sync now** from the **NTS client** page: the same time servers
+asked, the same entries in the log, and afterwards the same result on the page
+as its last synchronisation. The one line that differs is the one saying who
+asked - the page names the account that pressed the button and tags it `web`,
+the prompt says it was the command line and tags it `cli`. Like the button, it
+asks and reports and leaves the clock alone. The console gets a line for each
+server as well, because the log only records what the group concluded:
+
+```
+gateway:2353> syncNTS
+succeeded after 852 ms: 4 of 4 server(s) answered (2 required), offset +908.3 ms, spread 5.1 ms
+  ptbtime1.ptb.de  +908.4 ms, round trip 41.8 ms, key exchange new
+  ptbtime2.ptb.de  +909.6 ms, round trip 41.7 ms, key exchange new
+  ptbtime3.ptb.de  +908.2 ms, round trip 41.7 ms, key exchange new
+  ptbtime4.ptb.de  +904.6 ms, round trip 53.0 ms, key exchange new
+```
+
+With one of the gateway's time servers after it, it is that server's **Test**
+button instead: one server, on the ports it is configured with, and every step
+with when it happened. Only a server of this gateway is tested; anything else is
+answered with the ones there are, and nothing is asked. Tab offers the servers
+as soon as the command is typed.
+
+```
+gateway:2353> syncNTS ptbtime2.ptb.de
+ptbtime2.ptb.de answered, 243 ms altogether:
+    +0 ms  Asking ptbtime2.ptb.de: key exchange on port 4460, time on port 123, 10 second(s) allowed.
+    +6 ms  'ptbtime2.ptb.de' resolves to 192.53.103.104, 2001:0638:0610:be01:0000:0000:0000:0104.
+    +6 ms  Key exchange over TLS ...
+  +214 ms  Connected to 192.53.103.104, of 2 address(es) that were offered.
+  +214 ms  Where the time went: name 0 ms, TCP 25 ms, TLS 136 ms, key exchange 45 ms.
+  +215 ms  TLS 1.3, TLS_AES_128_GCM_SHA256, ALPN ntske/1.
+  +217 ms  Server certificate: CN=ptbtime2.ptb.de, for ptbtime2.ptb.de; RSA 3072-bit, sha256RSA; valid 2026-08-09 03:05:52 to 2026-11-07 03:05:51 UTC, 43 day(s) left.
+  +218 ms  Intermediate CA: CN=YR1, O=Let's Encrypt, C=US; RSA 2048-bit, sha256RSA; valid 2025-09-03 00:00:00 to 2028-09-02 23:59:59 UTC, 709 day(s) left.
+  +218 ms  Intermediate CA: CN=Root YR, O=ISRG, C=US; RSA 4096-bit, sha256RSA; valid 2026-05-13 00:00:00 to 2032-09-02 23:59:59 UTC, 2170 day(s) left.
+  +218 ms  Root CA: CN=ISRG Root X1, O=Internet Security Research Group, C=US; RSA 4096-bit, sha256RSA; valid 2015-06-04 11:04:38 to 2035-06-04 11:04:38 UTC, 3175 day(s) left.
+  +218 ms  The root's SHA-256 fingerprint: 96bcec06264976f37460779acf28c5a7cfe8a3c0aae11a8ffcee05c0bddf08c6.
+  +218 ms  Validated: the chain ends at a root this machine trusts, nothing in it is revoked (asked online), and 'ptbtime2.ptb.de' is one of the server certificate's names.
+  +219 ms  The key exchange succeeded: AES_SIV_CMAC_256, 8 cookie(s).
+  +219 ms  It named no NTP server of its own, so the time is asked of this host.
+  +219 ms  Authenticated NTP request ...
+  +243 ms  Answered by 192.53.103.104:123; 8 cookie(s) left, and a fresh one came back.
+  +243 ms  Round trip 23.3 ms.
+  +243 ms  This gateway's clock is +905.5 ms off what ptbtime2.ptb.de says.
+  +243 ms  The clock was not stepped: that is a different thing, with meter readings and certificates hanging off it, and not something a test does by surprise.
+```
 
 The log keeps writing while you type, from whichever thread did the thing it is
 reporting, and your half-typed line survives it: the line is taken off the
 screen, the entry is written whole, and the line comes back with the cursor
 where it was.
 
-Where there is no terminal on the input - from a script, under a service
-manager, in CI - there is no prompt and nothing to type at, and the gateway
-runs until it is stopped.
+Where there is no terminal - from a script, under a service manager, in CI, or
+with the output going into a file or through `| tee` - there is no prompt and
+nothing to type at, and the gateway runs until it is stopped.
 
 While working on the web interface, run `npm run watch` in
 `libs/Gateway/Gateway/Frontend` and start the gateway with `--frontend
@@ -170,7 +216,7 @@ change, without rebuilding the C# side.
 | | |
 |---|---|
 | `GatewayCLI/` | the command line: switches, and what the console says at a start |
-| `GatewayCLI/CLI/` | what can be typed at the running gateway - one file per command |
+| `GatewayCLI/CLI/` | the prompt, and in `CLICommands/` what can be typed at it - one file per command |
 | `GatewayCLI/PKISetup.cs` | the bench script that built a test PKI; kept for what it knows, not compiled |
 | `libs/Gateway/Gateway/` | the gateway itself - its configuration, its log, its JSON API, its web interface |
 | `libs/Gateway/Gateway/Frontend/` | the web interface: TypeScript and SCSS, bundled by webpack |

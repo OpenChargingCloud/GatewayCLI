@@ -142,8 +142,8 @@ namespace cloud.charging.open.Gateway
             Console.WriteLine();
             Console.WriteLine("Once it is up, the console is a prompt: 'help' lists what can be typed there,");
             Console.WriteLine("Tab completes it, and 'quit' or Ctrl+C stops the gateway. Started where there is");
-            Console.WriteLine("no terminal on the input - from a script, under a service manager, in CI - there");
-            Console.WriteLine("is no prompt and it simply runs.");
+            Console.WriteLine("no terminal - from a script, under a service manager, in CI, or with the output");
+            Console.WriteLine("going into a file - there is no prompt and it simply runs.");
         }
 
         #endregion
@@ -456,11 +456,21 @@ namespace cloud.charging.open.Gateway
                 // on its input and Console.ReadKey throws rather than waiting -
                 // and there would be nobody to type anyway. Then the gateway
                 // simply runs, and the web interface is how it is spoken to.
-                var canBeTypedAt = !Console.IsInputRedirected;
+                //
+                // The output counts too: the prompt is drawn on a terminal,
+                // and with the output going into "| tee" or a file there is
+                // none to draw it on. Measured while this asked about the
+                // input alone, with a console on the input and the output in
+                // a file: on Windows the gateway was gone within a second of
+                // its banner, "An event log listener failed" its last words
+                // and 0 its exit code - a program that said all was well. On
+                // Linux it stayed, and drew its prompt into the file.
+                var canBeTypedAt = !Console.IsInputRedirected &&
+                                   !Console.IsOutputRedirected;
 
                 Console.WriteLine(canBeTypedAt
                                       ? "Type 'help' for what can be typed here, 'quit' or Ctrl+C to stop."
-                                      : "Press Ctrl+C to stop. (No terminal on the input here, so nothing to type at.)");
+                                      : "Press Ctrl+C to stop. (No terminal here, so nothing to type at.)");
                 Console.WriteLine();
 
                 var stopped = new TaskCompletionSource();
@@ -478,22 +488,86 @@ namespace cloud.charging.open.Gateway
                 if (canBeTypedAt)
                 {
 
-                    // From here two things write on one screen: this command
-                    // line, and the gateway's log from whichever thread did the
-                    // thing it is reporting. So the log stops writing of its own
-                    // accord and asks the command line for the screen instead -
-                    // which takes the half-typed command off it, writes the
-                    // entry whole, and puts the command back with the cursor
-                    // where it was.
-                    var cli = new GatewayCLI(gateway);
+                    var cli             = new GatewayCLI(gateway);
+                    var brokeAtOnce     = false;
 
-                    gateway.ShareConsoleWith(cli.WriteBlock);
+                    while (true)
+                    {
 
-                    // On a thread of its own, because Console.ReadKey blocks the
-                    // one it is called on: awaited directly, the command line
-                    // would keep this thread inside ReadKey and Ctrl+C would
-                    // have nobody left to wake.
-                    await Task.WhenAny(stopped.Task, Task.Run(cli.Run));
+                        // From here two things write on one screen: this command
+                        // line, and the gateway's log from whichever thread did
+                        // the thing it is reporting. So the log stops writing of
+                        // its own accord and asks the command line for the screen
+                        // instead - which takes the half-typed command off it,
+                        // writes the entry whole, and puts the command back with
+                        // the cursor where it was.
+                        gateway.ShareConsoleWith(cli.WriteBlock);
+
+                        // On a thread of its own, because Console.ReadKey blocks
+                        // the one it is called on: awaited directly, the command
+                        // line would keep this thread inside ReadKey and Ctrl+C
+                        // would have nobody left to wake.
+                        var since   = System.Diagnostics.Stopwatch.GetTimestamp();
+                        var typing  = Task.Run(cli.Run);
+
+                        await Task.WhenAny(stopped.Task, typing);
+
+                        if (!typing.IsFaulted)
+                            break;
+
+                        // A command line that broke is not somebody asking for
+                        // the gateway to stop - and that is how it was taken
+                        // before this loop. One thing that broke it, on Windows,
+                        // was a line typed wider than the window, which threw
+                        // out of the line editor of the Styx this was first
+                        // built on - measured in 100 columns: "(Parameter
+                        // 'left') Actual value was 100." - and the gateway shut
+                        // down on it, with exit code 0. Styx scrolls such a
+                        // line now; this is for whatever breaks it next.
+                        //
+                        // The console goes back to the log first, with a lock
+                        // of its own, because the command line's way of writing
+                        // may be what broke: a prompt that fails while drawing
+                        // itself stays registered as the line on the screen,
+                        // and every entry after that fails trying to take it
+                        // off again.
+                        //
+                        // Then a new prompt - unless the last one was already
+                        // a new one and broke again the moment it started.
+                        // That is a console a prompt cannot be drawn on at all,
+                        // and asking a third time would only fail a third time.
+                        // How fast the first one broke says nothing: a line
+                        // pasted in straight after the start is still a line.
+                        var padlock = new Lock();
+
+                        gateway.ShareConsoleWith(write => { lock (padlock) { write(); } });
+
+                        var atOnce = System.Diagnostics.Stopwatch.GetElapsedTime(since) < TimeSpan.FromSeconds(1);
+                        var giveUp = atOnce && brokeAtOnce;
+
+                        brokeAtOnce = atOnce;
+
+                        // On one line, as every entry is: the message of an
+                        // exception may carry line breaks of its own - that
+                        // one does, before "Actual value was" - and in the log
+                        // file a second line has no time, no level and no tags.
+                        var why = typing.Exception?.GetBaseException().Message.ReplaceLineEndings(" ");
+
+                        gateway.Log.Warning(
+                            $"The command line stopped working: {why} " +
+                            (giveUp
+                                 ? "A new one broke again as soon as it started, so there is none; the gateway keeps running, and Ctrl+C stops it."
+                                 : "A new one is started."),
+                            "cli"
+                        );
+
+                        if (giveUp)
+                        {
+                            await stopped.Task;
+                            break;
+                        }
+
+                    }
 
                 }
 
