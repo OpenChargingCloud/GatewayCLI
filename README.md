@@ -91,15 +91,35 @@ Both are on the **Configuration** pages, and both are written to
 `configuration.json` beside the solution (`--config <file>` puts it
 elsewhere). Without the file the gateway runs on the system's name servers and
 on four time servers of the PTB, at least two of which must agree; every
-change on the pages takes effect at once and is written to the file first.
+change on the pages takes effect at once and is written to the file first -
+and a change to the time servers that the next start would refuse is refused
+before anything is written.
+
+An entry of the `dns` section's `servers` is an address or a host name -
+`"192.168.1.1"` is one name server, asked over UDP on port 53 - or an object
+saying more than that, the form the DNS page writes the list back in:
+
+```json
+{ "address": "192.168.1.1", "port": 53, "transport": "UDP", "queryTimeoutSeconds": 2 }
+```
+
+`udp://192.168.1.1:53` is how the log names a name server, not a form the file
+takes. A file saying it is refused at the start, with the entry named.
 
 The **DNS** page looks a name up the way the gateway resolves anything - or
-asks one of the name servers on its own. The **NTS** page asks the group of
-time servers what the time is, or takes one server apart step by step: the
-name, the TLS handshake, the key exchange, the authenticated NTP request. The
-clock of the gateway is checked against the group every fifteen minutes. It is
-never set from the answer: that is the operating system's business, and a
-button that stepped the clock of a running gateway would be a surprise.
+asks one of the name servers on its own. The **NTS** page is the group of time
+servers: a row for each, with what it said in the last synchronisation and the
+root CA its last key exchange ended at, an **Edit**, and a **Test** that takes
+the server apart step by step - the name, the TLS handshake and every
+certificate of the chain with the days it has left, the key exchange, the
+authenticated NTP request. Below the servers is what the group is held to, and
+last **Sync now**, which asks them all.
+
+The clock of the gateway is checked against the group every fifteen minutes.
+It is never set from the answer: that is the operating system's business, and
+a button that stepped the clock of a running gateway would be a surprise.
+`GET /api/v1/clock` says, to anybody signed in, what time it is here, the group
+it is checked against, when it was last checked and how far off it was then.
 
 
 ### The log
