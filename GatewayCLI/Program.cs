@@ -21,8 +21,9 @@ using org.GraphDefined.Vanaheimr.Hermod;
 using org.GraphDefined.Vanaheimr.Hermod.HTTP;
 
 using cloud.charging.open.Gateway.CommandLine;
-using cloud.charging.open.Gateway.Configuration;
-using cloud.charging.open.Gateway.Logging;
+using cloud.charging.open.protocols.WWCP.Node;
+using cloud.charging.open.protocols.WWCP.Node.Configuration;
+using cloud.charging.open.protocols.WWCP.Node.Logging;
 
 #endregion
 
@@ -122,7 +123,7 @@ namespace cloud.charging.open.Gateway
             Console.WriteLine();
             Console.WriteLine("Configuration:");
             Console.WriteLine($"  --config <file>   where the name servers and the time servers of this gateway live");
-            Console.WriteLine($"                    (default: {GatewayConfigFile.DefaultFileName} below the repository root). Without");
+            Console.WriteLine($"                    (default: {WWCPConfigFile.DefaultFileName} below the repository root). Without");
             Console.WriteLine("                    the file the gateway runs on the system defaults; the");
             Console.WriteLine("                    Configuration pages of the web interface write it, and every");
             Console.WriteLine("                    change there takes effect at once.");
@@ -298,8 +299,8 @@ namespace cloud.charging.open.Gateway
 
                               AccountsPath:     accountsPath ?? Path.Combine(RepositoryRoot(), Gateway.DefaultAccountsPath),
 
-                              ConfigFile:       new GatewayConfigFile(
-                                                    configFilePath ?? Path.Combine(RepositoryRoot(), GatewayConfigFile.DefaultFileName)
+                              ConfigFile:       new WWCPConfigFile(
+                                                    configFilePath ?? Path.Combine(RepositoryRoot(), WWCPConfigFile.DefaultFileName)
                                                 ),
 
                               Frontend:         frontend,

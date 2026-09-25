@@ -113,8 +113,18 @@ jobs:
           npm run typecheck:test
           npm test
 
-      # The gateway's own tests. Nowhere else runs them — libs/Gateway has no
-      # workflow of its own, by design: it is not built alone, it is built here.
+      # The node below the gateway: its log, its configuration file, DNS and
+      # NTS, the certificate store, the roles - and the node itself. WWCP_Node
+      # has a gate of its own, against the tips of the libraries below it;
+      # this one asks the other question, at the versions pinned here.
+      - name: Test the node
+        timeout-minutes: 10
+        run: dotnet test libs/WWCP_Node/WWCP_Node_Tests/WWCP_Node_Tests.csproj --configuration Release --no-build --logger "console;verbosity=normal" --logger "trx;LogFileName=node-${{ matrix.leg }}.trx" --results-directory artifacts
+
+      # The gateway's own tests: what kind of node it is - its names and its
+      # roles - and the event stream. Nowhere else runs them — libs/Gateway has
+      # no workflow of its own, by design: it is not built alone, it is built
+      # here.
       #
       # No category filter: nothing in this project queries the network. Where
       # a test cannot hold on a platform it says so itself with Assert.Ignore,

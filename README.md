@@ -18,7 +18,9 @@ needs nothing installed beside it.
 
 **What is here so far** is what every program of the family has before it does
 anything of its own: the sign-in, the name servers, the time servers and the
-log. **The forwarding itself is not here yet.** A gateway started today
+log - which is [WWCP_Node](https://github.com/OpenChargingCloud/WWCP_Node),
+the node the vehicle is built on too; the gateway adds its names, its port,
+its roles and its JSON API. **The forwarding itself is not here yet.** A gateway started today
 listens for its web interface, checks its clock and resolves names - and
 passes no OCPP frame anywhere.
 
@@ -74,7 +76,8 @@ bench as the things it sits between fights none of them over a port. `--any`
 binds every address instead of the loopback, and `--help` lists the rest.
 
 Who may do what is decided by three roles, each a user group of the HTTPExt
-API:
+API - the gateway's own, handed to the node below, which would otherwise make
+a vehicle's:
 
 | role          | may                                                        |
 |---------------|------------------------------------------------------------|
@@ -218,15 +221,17 @@ change, without rebuilding the C# side.
 | `GatewayCLI/` | the command line: switches, and what the console says at a start |
 | `GatewayCLI/CLI/` | the prompt, and in `CLICommands/` what can be typed at it - one file per command |
 | `GatewayCLI/PKISetup.cs` | the bench script that built a test PKI; kept for what it knows, not compiled |
-| `libs/Gateway/Gateway/` | the gateway itself - its configuration, its log, its JSON API, its web interface |
+| `libs/Gateway/Gateway/` | the gateway itself - what kind of node it is, its roles, its JSON API |
 | `libs/Gateway/Gateway/Frontend/` | the web interface: TypeScript and SCSS, bundled by webpack |
-| `libs/Gateway/GatewayTests/` | what the configuration may say, and what it may not |
+| `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names and its roles - and the event stream |
+| `libs/WWCP_Node/` | the node below it, the same as the vehicle's: the log, the configuration file and what it may say, DNS and NTS, the certificate store, the accounts and the web server |
 | `libs/WWCP_OCPP/` | the protocol, and the OCPP gateway the forwarding will be built on |
 | `.github/workflows/` | what runs on every push, and what runs at night |
 
 The command line is this program's vocabulary and nothing else - the switches
 it is started with and the commands it can be typed at. What a gateway *is*,
-and what it does, lives in `libs/Gateway`.
+and what it does, lives in `libs/Gateway`; what every program of the family
+is before it is anything in particular lives in `libs/WWCP_Node`.
 
 
 ### Your participation

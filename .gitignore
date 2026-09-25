@@ -295,3 +295,11 @@ web-login.json
 # the build stamp does not call every tree dirty once something else lands
 # there.
 /logs/
+
+# The certificate store of the node below the gateway, which every start makes
+# beside the configuration file - empty for as long as the gateway has no use
+# for one, and a place for private keys once it does. Ignored for both
+# reasons: what lands there is this installation's and never the source's,
+# and a directory written at every start would otherwise mark every build
+# dirty. Anchored like the accounts.
+/certificates/
