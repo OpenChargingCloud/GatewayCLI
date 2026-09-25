@@ -296,10 +296,10 @@ web-login.json
 # there.
 /logs/
 
-# The certificate store of the node below the gateway, which every start makes
-# beside the configuration file - empty for as long as the gateway has no use
-# for one, and a place for private keys once it does. Ignored for both
-# reasons: what lands there is this installation's and never the source's,
-# and a directory written at every start would otherwise mark every build
-# dirty. Anchored like the accounts.
+# The certificate store of the node below the gateway. A gateway keeps none and
+# makes no directory for one - but for a while every start made an empty one
+# beside the configuration file, and a tree that still has it should not be
+# called dirty by the build stamp; and the day a gateway keeps certificates,
+# what lands there is this installation's, private keys included, and never
+# the source's. Anchored like the accounts.
 /certificates/
