@@ -137,6 +137,17 @@ entry down to the debug ones, for the afternoon somebody asks what happened
 last night - `--log-file <dir>` puts it elsewhere, `--no-log-file` leaves it
 out, and nothing in it is ever deleted.
 
+Beside the files, `logs/metrological/` is the **log book**, and the one of
+them that is evidence rather than a record: what bears on the time the gateway
+stamps things with - its starts and its ends, the plan of its clock check,
+every synchronisation with what each server answered, every change of the
+time servers. One JSON object per line and one file per day, each line
+carrying the hash of the one before it and signed with an ECDSA P-256 key kept
+beside it, `signing-key.pem`, whose public half is `signing-key.pub.pem`.
+Nothing in it is thinned out, and without log files there is none. It is
+[WWCP_Node](https://github.com/OpenChargingCloud/WWCP_Node)'s, and its README
+says what is written there and how a chain is checked.
+
 What the libraries below write with `DebugX` is picked up too and tagged
 `trace`; `--no-trace` leaves it out.
 
