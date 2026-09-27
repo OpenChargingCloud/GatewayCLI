@@ -169,8 +169,9 @@ servers alone vouches for no time. A **tlsServer** is a server's own
 certificate, kept so that the server can be held to it by its fingerprint; a
 server's dialog on the **NTS client** and **DNS client** pages offers the ones
 the store keeps for it. A **clientRoot** - what a client connecting to the
-gateway will have to chain to - and a **tlsIdentity** - what the gateway
-presents in TLS, with its private key - are kept, and used by nothing here yet.
+gateway will have to chain to, a root or the CA below one that issues the
+clients - and a **tlsIdentity** - what the gateway presents in TLS, with its
+private key - are kept, and used by nothing here yet.
 
 ```
 dotnet run --project GatewayCLI -- \
