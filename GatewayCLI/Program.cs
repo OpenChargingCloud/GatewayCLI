@@ -22,6 +22,7 @@ using org.GraphDefined.Vanaheimr.Hermod.HTTP;
 
 using cloud.charging.open.Gateway.CommandLine;
 using cloud.charging.open.protocols.WWCP.Node;
+using cloud.charging.open.protocols.WWCP.Node.Certificates;
 using cloud.charging.open.protocols.WWCP.Node.Configuration;
 using cloud.charging.open.protocols.WWCP.Node.Logging;
 
@@ -101,6 +102,64 @@ namespace cloud.charging.open.Gateway
 
         #endregion
 
+        #region (private static) ListCertificates(Gateway)
+
+        /// <summary>
+        /// What is in this gateway's certificate store, as a table.
+        /// </summary>
+        /// <remarks>
+        /// Printed and not returned: this is what <c>--list-certificates</c>
+        /// exists for - what the store holds, whether each one is switched on,
+        /// until when, and what a root or a server certificate is kept for,
+        /// for somebody at a console rather than on the Certificates page.
+        /// </remarks>
+        private static void ListCertificates(Gateway gateway)
+        {
+
+            Console.WriteLine();
+            Console.WriteLine($"  Certificates in {gateway.Certificates.Directory}");
+            Console.WriteLine();
+
+            var entries = gateway.Certificates.Entries;
+
+            if (entries.Count == 0)
+            {
+                Console.WriteLine("  (empty - put one there with --import-certificate <kind>=<file>)");
+                Console.WriteLine();
+                return;
+            }
+
+            foreach (var kind in gateway.Certificates.Kinds)
+            {
+
+                var ofKind = entries.Where(entry => entry.Kind == kind).ToArray();
+
+                if (ofKind.Length == 0)
+                    continue;
+
+                Console.WriteLine($"  {kind.Describe()}");
+
+                foreach (var entry in ofKind)
+                {
+
+                    var state = !entry.IsActive       ? "off"
+                                : entry.IsExpired     ? "EXPIRED"
+                                : entry.IsNotYetValid ? "not yet valid"
+                                : "on";
+
+                    Console.WriteLine($"    {entry.Id}  {state,-13}  until {entry.NotAfter.UtcDateTime:yyyy-MM-dd}  " +
+                                      $"{entry.Label}{(kind.HasUsages() ? $"  ({CertificateUsages.Describe(entry.Usages)})" : "")}");
+
+                }
+
+                Console.WriteLine();
+
+            }
+
+        }
+
+        #endregion
+
         #region (private static) PrintUsage()
 
         private static void PrintUsage()
@@ -108,6 +167,8 @@ namespace cloud.charging.open.Gateway
             Console.WriteLine("Usage: GatewayCLI [--port <number>] [--any] [--frontend <dist directory>]");
             Console.WriteLine("                  [--accounts <dir>] [--config <file>] [--verbose | --quiet] [--no-trace]");
             Console.WriteLine("                  [--log-file <dir>] [--no-log-file]");
+            Console.WriteLine("                  [--certificates <dir>] [--import-certificate <kind>=<file>]");
+            Console.WriteLine("                  [--certificate-password <pw>] [--list-certificates]");
             Console.WriteLine();
             Console.WriteLine("Web interface:");
             Console.WriteLine($"  --port <number>   TCP port to listen on (default: {Gateway.DefaultHTTPPort})");
@@ -127,6 +188,30 @@ namespace cloud.charging.open.Gateway
             Console.WriteLine("                    the file the gateway runs on the system defaults; the");
             Console.WriteLine("                    Configuration pages of the web interface write it, and every");
             Console.WriteLine("                    change there takes effect at once.");
+            Console.WriteLine();
+            Console.WriteLine("The certificate store. What this gateway believes and presents is kept here, one");
+            Console.WriteLine("file per certificate, and switched on and off one at a time:");
+            Console.WriteLine($"  --certificates <dir>      where the store is (default: {CertificatesConfiguration.DefaultDirectory}/ beside the");
+            Console.WriteLine("                    configuration file). Certificates already in that directory are");
+            Console.WriteLine("                    read again at every start, so copying one in is a way to install");
+            Console.WriteLine("                    it. The Certificates page manages the same store");
+            Console.WriteLine("  --import-certificate <kind>=<file>");
+            Console.WriteLine("                    copy a certificate into the store, as PEM, DER or PKCS#12. A root");
+            Console.WriteLine("                    is a certificate on its own; a tlsIdentity has to bring its private");
+            Console.WriteLine("                    key, so a PEM for one carries the key beside it. May be given");
+            Console.WriteLine("                    several times. <kind> is one of:");
+            Console.WriteLine("                      tlsRoot    what a time server or a name server over TLS may chain to");
+            Console.WriteLine("                      tlsServer  a server's own certificate, to hold it to by fingerprint");
+            Console.WriteLine("                      clientRoot, tlsIdentity  kept, and used by nothing here yet");
+            Console.WriteLine("                    A tlsRoot or a tlsServer goes in for every use; the Certificates");
+            Console.WriteLine("                    page says what it is for - the time servers, the name servers.");
+            Console.WriteLine("                    A root is believed as soon as it is in");
+            Console.WriteLine("  --certificate-password <pw>");
+            Console.WriteLine("                    what opens a protected PKCS#12 being imported. Used once and not");
+            Console.WriteLine("                    kept: the store holds what it has without a password. A password");
+            Console.WriteLine("                    given here stands in the process list for every other user of the");
+            Console.WriteLine("                    machine, so prefer the environment: GATEWAY_CERT_PASSWORD");
+            Console.WriteLine("  --list-certificates       print the store, with the handle of each certificate");
             Console.WriteLine();
             Console.WriteLine("Log:");
             Console.WriteLine("  -v, --verbose     write every entry to the console, down to the debug ones");
@@ -167,6 +252,13 @@ namespace cloud.charging.open.Gateway
             var      verbose        = false;
             var      quiet          = false;
             var      noTrace        = false;
+
+            String?  certificatesDir   = null;
+            String?  certPassword      = null;
+            var      listCertificates  = false;
+
+            // Repeatable, and imported in the order they were typed.
+            var      imports           = new List<(CertificateKind Kind, String File)>();
 
             for (var i = 0; i < Arguments.Length; i++)
             {
@@ -240,6 +332,63 @@ namespace cloud.charging.open.Gateway
                         noTrace = true;
                         break;
 
+                    case "--certificates":
+                        if (!TryTakeValue(Arguments, ref i, out certificatesDir))
+                        {
+                            Console.Error.WriteLine("Missing directory after --certificates!");
+                            return 2;
+                        }
+                        break;
+
+                    case "--certificate-password":
+                        if (!TryTakeValue(Arguments, ref i, out certPassword))
+                        {
+                            Console.Error.WriteLine("Missing password after --certificate-password!");
+                            return 2;
+                        }
+                        break;
+
+                    case "--list-certificates":
+                        listCertificates = true;
+                        break;
+
+                    case "--import-certificate":
+                    {
+
+                        if (!TryTakeValue(Arguments, ref i, out var import) || import is null)
+                        {
+                            Console.Error.WriteLine("Missing <kind>=<file> after --import-certificate!");
+                            return 2;
+                        }
+
+                        // Split at the FIRST '=' only: everything after it is
+                        // the path, and a Windows path is full of things that
+                        // are not separators.
+                        var split = import.IndexOf('=');
+
+                        if (split < 1 || split == import.Length - 1)
+                        {
+                            Console.Error.WriteLine($"--import-certificate wants <kind>=<file>, and '{import}' is not that.");
+                            return 2;
+                        }
+
+                        // The kinds a gateway keeps, and not every kind there
+                        // is: a vehicle's root named here would only be refused
+                        // by the store, once the gateway had been made.
+                        if (!CertificateKindExtensions.TryParseKind(import[..split], out var importKind) ||
+                            !Gateway.CertificateKinds.Contains(importKind))
+                        {
+                            Console.Error.WriteLine($"'{import[..split]}' is not a kind of certificate a gateway keeps. " +
+                                                    $"Use one of {String.Join(", ", Gateway.CertificateKinds.Select(one => one.AsText()))}.");
+                            return 2;
+                        }
+
+                        imports.Add((importKind, import[(split + 1)..]));
+
+                        break;
+
+                    }
+
                     case "-h":
                     case "--help":
                         PrintUsage();
@@ -305,6 +454,14 @@ namespace cloud.charging.open.Gateway
 
                               Frontend:         frontend,
 
+                              // Measured from where the gateway is started, as
+                              // every other path on this command line is. Handed
+                              // on relative, it would be measured from the
+                              // configuration file.
+                              CertificatesPath: certificatesDir is not null
+                                                    ? Path.GetFullPath(certificatesDir)
+                                                    : null,
+
                               ConsoleLogLevel:  verbose ? LogLevel.Debug
                                                     : quiet ? LogLevel.Warning
                                                     : LogLevel.Info,
@@ -340,6 +497,53 @@ namespace cloud.charging.open.Gateway
 
             await using (gateway)
             {
+
+                #region What the switches said about certificates
+
+                // Before the start, so that a root imported here is believed by
+                // the first key exchange with a time server, and not only by the
+                // one after it.
+                foreach (var (kind, file) in imports)
+                {
+
+                    if (!File.Exists(file))
+                    {
+                        Console.Error.WriteLine($"--import-certificate: there is no file '{file}'.");
+                        return 2;
+                    }
+
+                    Byte[] content;
+
+                    try
+                    {
+                        content = await File.ReadAllBytesAsync(file);
+                    }
+                    catch (Exception problem)
+                    {
+                        Console.Error.WriteLine($"--import-certificate: '{file}' could not be read: {problem.Message}");
+                        return 2;
+                    }
+
+                    if (!gateway.Certificates.Import(content,
+                                                     kind,
+                                                     certPassword ?? Environment.GetEnvironmentVariable("GATEWAY_CERT_PASSWORD"),
+                                                     Label: null,
+                                                     out var imported,
+                                                     out var problem2))
+                    {
+                        Console.Error.WriteLine($"--import-certificate: {file} could not be imported as " +
+                                                $"{kind.AsText()}: {problem2}");
+                        return 2;
+                    }
+
+                    Console.WriteLine($"  imported       {imported.Label} as {kind.AsText()}, handle {imported.Id}");
+
+                }
+
+                if (listCertificates)
+                    ListCertificates(gateway);
+
+                #endregion
 
                 try
                 {

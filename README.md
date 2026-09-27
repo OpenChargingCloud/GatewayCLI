@@ -17,12 +17,13 @@ embedded into the assembly, so that the gateway is one thing to deploy and
 needs nothing installed beside it.
 
 **What is here so far** is what every program of the family has before it does
-anything of its own: the sign-in, the name servers, the time servers and the
-log - which is [WWCP_Node](https://github.com/OpenChargingCloud/WWCP_Node),
-the node the vehicle is built on too; the gateway adds its names, its port,
-its roles and its JSON API. **The forwarding itself is not here yet.** A gateway started today
-listens for its web interface, checks its clock and resolves names - and
-passes no OCPP frame anywhere.
+anything of its own: the sign-in, the name servers, the time servers, the
+certificates they are held to and the log - which is
+[WWCP_Node](https://github.com/OpenChargingCloud/WWCP_Node), the node the
+vehicle is built on too; the gateway adds its names, its port, its roles, the
+kinds of certificate it keeps and its JSON API. **The forwarding itself is not
+here yet.** A gateway started today listens for its web interface, checks its
+clock and resolves names - and passes no OCPP frame anywhere.
 
 
 ### Getting it
@@ -82,11 +83,11 @@ operation - `read`, `edit` or `run` - on a resource: the node's
 `configuration`, `dns`, `nts` and `certificates`; a gateway adds none of its
 own yet.
 
-| role          | may                                                            |
-|---------------|----------------------------------------------------------------|
-| `viewer`      | read everything: the configuration, the log                    |
-| `operator`    | that, and ask a name server or a time server something         |
-| `systemadmin` | everything: change the name servers and the time servers too   |
+| role          | may                                                                        |
+|---------------|----------------------------------------------------------------------------|
+| `viewer`      | read everything: the configuration, the certificates, the log              |
+| `operator`    | that, and ask a name server or a time server something                     |
+| `systemadmin` | everything: change the name servers, the time servers and the certificates |
 
 `viewer` and `systemadmin` are the node's, `operator` is the gateway's, in
 `libs/Gateway/Gateway/GatewayAccess.cs`. The account made at the first start is
@@ -129,19 +130,87 @@ A server can be held to more than a certificate authority vouching for it. In
 a server's dialog on the **NTS** page - and on the **DNS** page for a name
 server reached over TLS or HTTPS, the only ones that show a certificate - go
 the fingerprints of the certificates it may show and of the roots its chain may
-end at, the one it showed last offered with a click; what a mismatch comes to,
-refused, recorded or accepted; and whether it is held to what it is first
-believed with. A gateway keeps no certificate store, so a chain has to end at a
-root the machine it runs on trusts, and a pin narrows that and never widens it.
-What every server was last believed with is kept in `known-servers.json` beside
-the configuration file - fingerprints and nothing else - so that another
-certificate is noticed even where a server is held to none.
+end at, the one it showed last and the ones the certificate store keeps for it
+offered with a click; what a mismatch comes to, refused, recorded or accepted;
+and whether it is held to what it is first believed with. A chain has to end at
+a root the machine it runs on trusts, or at one of the gateway's own - a TLS
+root of its store kept for that kind of server, or any root of the store the
+server is held to (see [Certificates](#certificates)); a pin then narrows that
+to the certificates and roots it names. What every server was last believed
+with is kept in `known-servers.json` beside the configuration file -
+fingerprints and nothing else - so that another certificate is noticed even
+where a server is held to none.
 
 The clock of the gateway is checked against the group every fifteen minutes.
 It is never set from the answer: that is the operating system's business, and
 a button that stepped the clock of a running gateway would be a surprise.
 `GET /api/v1/clock` says, to anybody signed in, what time it is here, the group
 it is checked against, when it was last checked and how far off it was then.
+
+
+### Certificates
+
+Everything this gateway believes, the certificate it presents and every server
+it recognises lives in one store, `certificates/` beside the configuration
+file - so beside the solution unless `--config` says otherwise - and is managed
+on the **Certificates** page or from the command line. A gateway keeps the four
+kinds of TLS and none of the seven of ISO 15118, which are a vehicle's.
+
+The store is the directory: one file per certificate below it, and an
+`index.json` recording what a file cannot say about itself: what somebody calls
+it, whether it is switched on and - for a TLS root or a server certificate -
+what it is kept for. So a store copied to another machine arrives complete,
+and a lost index costs labels, switches and usages rather than certificates.
+
+A **tlsRoot** says which time server and which name server over TLS or HTTPS
+may be believed, beside the roots of the machine the gateway runs on - and is
+told what it is for, `nts`, `dns` or both, because a root kept for the name
+servers alone vouches for no time. A **tlsServer** is a server's own
+certificate, kept so that the server can be held to it by its fingerprint; a
+server's dialog on the **NTS client** and **DNS client** pages offers the ones
+the store keeps for it. A **clientRoot** - what a client connecting to the
+gateway will have to chain to - and a **tlsIdentity** - what the gateway
+presents in TLS, with its private key - are kept, and used by nothing here yet.
+
+```
+dotnet run --project GatewayCLI -- \
+    --import-certificate tlsRoot=our-time-servers-root.pem \
+    --list-certificates
+```
+
+Importing a root makes it believed - for every use, until the Certificates page
+says what it is for. `--list-certificates` prints every certificate with its
+handle, and `--certificates <dir>` points the gateway at another store.
+
+PEM, DER and PKCS#12 all go in. A root is a certificate on its own; a
+tlsIdentity has to bring its private key, so a PEM for one holds the key
+beside the certificate and the sub-CAs above it - the file `openssl` writes
+when it is given all three. An encrypted key block is opened with the same
+password a protected PKCS#12 would be. Certificates already in the store
+directory - copied in by hand, restored from a backup - are read again at every
+start and adopted, and **Re-read the directory** on the page does the same
+without a restart.
+
+Switching a certificate off is not the same as deleting it: the first leaves
+the file where it is, for the afternoon somebody takes a root out of service;
+the second deletes it, because a store whose "delete" left the private key on
+the disk would be worse than one with no delete at all. Time switches a
+certificate off as well, and separately - an expired certificate stays listed
+and stops being used. Only a `systemadmin` changes the store; anybody signed in
+may look at it.
+
+**The private keys in the store are not encrypted.** A PKCS#12 is opened with
+its password once, at import, and written back without one. What guards them
+is the file system: the store directory is made for its owner alone where the
+platform allows saying so in one call, which on Windows means the ACL a new
+directory inherits and nothing more. Anybody who can read `certificates/` can
+take this gateway's identity, so it belongs on a machine whose users are all
+trusted with exactly that. The gateway says so at every start, and at every
+import of a key.
+
+A password for an import is read from `GATEWAY_CERT_PASSWORD` where
+`--certificate-password` is not given. A password given as a switch stands in
+the process list for every other user of the machine.
 
 
 ### The log
@@ -253,9 +322,9 @@ change, without rebuilding the C# side.
 | `GatewayCLI/` | the command line: switches, and what the console says at a start |
 | `GatewayCLI/CLI/` | the prompt, and in `CLICommands/` what can be typed at it - one file per command |
 | `GatewayCLI/PKISetup.cs` | the bench script that built a test PKI; kept for what it knows, not compiled |
-| `libs/Gateway/Gateway/` | the gateway itself - what kind of node it is, its roles, its JSON API |
+| `libs/Gateway/Gateway/` | the gateway itself - what kind of node it is, its roles, the kinds of certificate it keeps, its JSON API |
 | `libs/Gateway/Gateway/Frontend/` | the web interface: TypeScript and SCSS, bundled by webpack |
-| `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names and its roles - and the event stream |
+| `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names, its roles, its certificates - and the event stream |
 | `libs/WWCP_Node/` | the node below it, the same as the vehicle's: the log, the configuration file and what it may say, DNS and NTS, the certificate store, the accounts and the web server |
 | `libs/WWCP_OCPP/` | the protocol, and the OCPP gateway the forwarding will be built on |
 | `.github/workflows/` | what runs on every push, and what runs at night |
