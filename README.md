@@ -171,7 +171,9 @@ server's dialog on the **NTS client** and **DNS client** pages offers the ones
 the store keeps for it. A **clientRoot** - what a client connecting to the
 gateway will have to chain to, a root or the CA below one that issues the
 clients - and a **tlsIdentity** - what the gateway presents in TLS, with its
-private key - are kept, and used by nothing here yet.
+private key - are kept, and used by nothing here yet. An identity is told the
+listeners it is shown on where a kind of node names some; a gateway names none,
+so the page offers an identity nothing to be told.
 
 ```
 dotnet run --project GatewayCLI -- \
