@@ -76,17 +76,23 @@ local controller's 2350 and the CSMS's 2351, so that a gateway on the same
 bench as the things it sits between fights none of them over a port. `--any`
 binds every address instead of the loopback, and `--help` lists the rest.
 
-Who may do what is decided by three roles, each a user group of the HTTPExt
-API - the gateway's own, handed to the node below, which would otherwise make
-a vehicle's:
+Who may do what is decided by three roles when the configuration file says
+nothing else, each a user group of the HTTPExt API. What a role may do is an
+operation - `read`, `edit` or `run` - on a resource: the node's
+`configuration`, `dns`, `nts` and `certificates`; a gateway adds none of its
+own yet.
 
-| role          | may                                                        |
-|---------------|------------------------------------------------------------|
-| `viewer`      | look at the configuration and the log                      |
-| `operator`    | that, and run the DNS and NTS tests                        |
-| `systemadmin` | that, and change the name servers and the time servers     |
+| role          | may                                                            |
+|---------------|----------------------------------------------------------------|
+| `viewer`      | read everything: the configuration, the log                    |
+| `operator`    | that, and ask a name server or a time server something         |
+| `systemadmin` | everything: change the name servers and the time servers too   |
 
-The account made at the first start is a `systemadmin`.
+`viewer` and `systemadmin` are the node's, `operator` is the gateway's, in
+`libs/Gateway/Gateway/GatewayAccess.cs`. The account made at the first start is
+a `systemadmin`. The configuration file may add roles and say differently what
+one of them may do, in a `roles` section - see
+[WWCP_Node's README](https://github.com/OpenChargingCloud/WWCP_Node#who-may-sign-in).
 
 
 ### Name servers and time servers
@@ -119,6 +125,18 @@ certificate of the chain with the days it has left, the key exchange, the
 authenticated NTP request. Below the servers is what the group is held to, and
 last **Sync now**, which asks them all.
 
+A server can be held to more than a certificate authority vouching for it. In
+a server's dialog on the **NTS** page - and on the **DNS** page for a name
+server reached over TLS or HTTPS, the only ones that show a certificate - go
+the fingerprints of the certificates it may show and of the roots its chain may
+end at, the one it showed last offered with a click; what a mismatch comes to,
+refused, recorded or accepted; and whether it is held to what it is first
+believed with. A gateway keeps no certificate store, so a chain has to end at a
+root the machine it runs on trusts, and a pin narrows that and never widens it.
+What every server was last believed with is kept in `known-servers.json` beside
+the configuration file - fingerprints and nothing else - so that another
+certificate is noticed even where a server is held to none.
+
 The clock of the gateway is checked against the group every fifteen minutes.
 It is never set from the answer: that is the operating system's business, and
 a button that stepped the clock of a running gateway would be a surprise.
@@ -135,16 +153,18 @@ keeps the last two thousand entries for whoever asks, and loses them when the
 process ends. And `logs/` beside the solution keeps one file per day, every
 entry down to the debug ones, for the afternoon somebody asks what happened
 last night - `--log-file <dir>` puts it elsewhere, `--no-log-file` leaves it
-out, and nothing in it is ever deleted.
+out, and nothing in it is ever deleted. Which directory it is, the start says
+under `log files`, and the Configuration page on its Event log card.
 
 Beside the files, `logs/metrological/` is the **log book**, and the one of
 them that is evidence rather than a record: what bears on the time the gateway
 stamps things with - its starts and its ends, the plan of its clock check,
-every synchronisation with what each server answered, every change of the
-time servers. One JSON object per line and one file per day, each line
-carrying the hash of the one before it and signed with an ECDSA P-256 key kept
-beside it, `signing-key.pem`, whose public half is `signing-key.pub.pem`.
-Nothing in it is thinned out, and without log files there is none. It is
+every synchronisation with what each server answered, what was news about a
+time server's certificate, every change of the time servers. One JSON object
+per line and one file per day, each line carrying the hash of the one before
+it and signed with an ECDSA P-256 key kept beside it, `signing-key.pem`, whose
+public half is `signing-key.pub.pem`. Nothing in it is thinned out, and
+without log files there is none. It is
 [WWCP_Node](https://github.com/OpenChargingCloud/WWCP_Node)'s, and its README
 says what is written there and how a chain is checked.
 

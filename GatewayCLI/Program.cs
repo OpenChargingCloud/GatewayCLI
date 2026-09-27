@@ -404,6 +404,7 @@ namespace cloud.charging.open.Gateway
                 Console.WriteLine($"  accounts       {gateway.ExtAPI.Users.Count()} user(s) in {gateway.AccountsPath}");
                 Console.WriteLine($"  sign in at     {gateway.WebInterfaceURL}{Gateway.ExtAPIPath.ToString().Trim('/')}/login");
                 Console.WriteLine($"  configuration  {gateway.ConfigFile.Path}");
+                Console.WriteLine($"  log files      {gateway.LogPath ?? "none (--no-log-file)"}");
                 Console.WriteLine($"  name servers   {(gateway.DNSEnabled ? String.Join(", ", gateway.DNSClient.DNSServers) : "switched off")}");
 
                 #region The time servers
