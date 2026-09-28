@@ -247,6 +247,10 @@ without log files there is none. It is
 [WWCP_Node](https://github.com/OpenChargingCloud/WWCP_Node)'s, and its README
 says what is written there and how a chain is checked.
 
+A change of the DNS or NTS settings or of the certificate store that comes in
+over the JSON API - from a page or from a script - is a `notice` line naming
+the account behind it: `'admin' changed the time source of this gateway.`
+
 What the libraries below write with `DebugX` is picked up too and tagged
 `trace`; `--no-trace` leaves it out.
 
