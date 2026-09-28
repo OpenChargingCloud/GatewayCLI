@@ -125,9 +125,11 @@ jobs:
         run: dotnet test libs/WWCP_Node/WWCP_Node_Tests/WWCP_Node_Tests.csproj --configuration Release --no-build --logger "console;verbosity=normal" --logger "trx;LogFileName=node-${{ matrix.leg }}.trx" --results-directory artifacts
 
       # The gateway's own tests: what kind of node it is - its names, its roles
-      # and the certificates it keeps - and the event stream. Nowhere else runs
-      # them — libs/Gateway has no workflow of its own, by design: it is not
-      # built alone, it is built here.
+      # and the certificates it keeps - and WWCP_Node's conformance suite asked
+      # of a gateway: the sign-in, the configuration, DNS and NTS, the log and
+      # its event stream, stopping, the certificate store and the web
+      # interface. Nowhere else runs them — libs/Gateway has no workflow of its
+      # own, by design: it is not built alone, it is built here.
       #
       # No category filter: nothing in this project queries the network. Where
       # a test cannot hold on a platform it says so itself with Assert.Ignore,

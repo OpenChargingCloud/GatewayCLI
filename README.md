@@ -338,8 +338,8 @@ change, without rebuilding the C# side.
 | `GatewayCLI/PKISetup.cs` | the bench script that built a test PKI; kept for what it knows, not compiled |
 | `libs/Gateway/Gateway/` | the gateway itself - what kind of node it is, its roles, the kinds of certificate it keeps, and its JSON API, the node's with nothing of its own on top yet |
 | `libs/Gateway/Gateway/Frontend/` | the web interface: TypeScript and SCSS, bundled by webpack |
-| `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names, its roles, its certificates - and the event stream |
-| `libs/WWCP_Node/` | the node below it, the same as the vehicle's: the log, the configuration file and what it may say, DNS and NTS, the certificate store, the accounts, the web server and the JSON API every node answers |
+| `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names, its roles, which of its certificates is told what it is for - and the node's conformance suite, asked of a gateway |
+| `libs/WWCP_Node/` | the node below it, the same as the vehicle's: the log, the configuration file and what it may say, DNS and NTS, the certificate store, the accounts, the web server and the JSON API every node answers - and in `WWCP_Node_TestKit/` what every node has to pass |
 | `libs/WWCP_OCPP/` | the protocol, and the OCPP gateway the forwarding will be built on |
 | `.github/workflows/` | what runs on every push, and what runs at night |
 
