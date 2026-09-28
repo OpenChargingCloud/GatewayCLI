@@ -141,6 +141,12 @@ with is kept in `known-servers.json` beside the configuration file -
 fingerprints and nothing else - so that another certificate is noticed even
 where a server is held to none.
 
+What is learned on first use is written into the server's entry at the first
+key exchange or handshake after a save, mostly with the NTS or DNS page still
+open. So the pages send every server back with what they showed it held to,
+under `pinsAsShown`: their next save keeps what was learned in between, and
+still takes away a pin that was shown and removed there.
+
 The clock of the gateway is checked against the group every fifteen minutes.
 It is never set from the answer: that is the operating system's business, and
 a button that stepped the clock of a running gateway would be a surprise.
