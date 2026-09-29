@@ -331,6 +331,12 @@ While working on the web interface, run `npm run watch` in
 libs/Gateway/Gateway/Frontend/dist`: a reload in the browser then shows the
 change, without rebuilding the C# side.
 
+The web interface has no test of its own yet. `src/scaffolding.test.ts` in the
+same directory holds the place until the first one comes, and asks only that
+`@node/...` is found from there - by `npm run typecheck:test` and by `npm
+test`, which the CI runs as it will run that first test. What the pages of
+every node share is tested in WWCP_Node.
+
 
 ### Where things are
 
