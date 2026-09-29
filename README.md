@@ -80,6 +80,8 @@ Hermod's HTTPExt API, mounted under `/ext`. The web interface is on
 local controller's 2350 and the CSMS's 2351, so that a gateway on the same
 bench as the things it sits between fights none of them over a port. `--any`
 binds every address instead of the loopback, and `--help` lists the rest.
+They are every node's switches, read by WWCP_Node, as is what the console
+says once the gateway is up.
 
 Who may do what is decided by three roles when the configuration file says
 nothing else, each a user group of the HTTPExt API. What a role may do is an
@@ -348,7 +350,7 @@ does; what the pages of every node share is tested in WWCP_Node.
 
 | | |
 |---|---|
-| `GatewayCLI/` | the command line: switches, and what the console says at a start |
+| `GatewayCLI/` | the program: every node's switches and banner - WWCP_Node's, in a gateway's words - and the gateway it starts with them |
 | `GatewayCLI/CLI/` | the prompt, on WWCP_Node's `NodeCLI`, which brings what every node can be typed at - and a command of the gateway's own, one file each, once there is one |
 | `GatewayCLI/PKISetup.cs` | the bench script that built a test PKI; kept for what it knows, not compiled |
 | `libs/Gateway/Gateway/` | the gateway itself - what kind of node it is, its roles, the kinds of certificate it keeps, and its JSON API, the node's with nothing of its own on top yet |
