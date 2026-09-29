@@ -331,11 +331,14 @@ While working on the web interface, run `npm run watch` in
 libs/Gateway/Gateway/Frontend/dist`: a reload in the browser then shows the
 change, without rebuilding the C# side.
 
-The web interface has no test of its own yet. `src/scaffolding.test.ts` in the
-same directory holds the place until the first one comes, and asks only that
-`@node/...` is found from there - by `npm run typecheck:test` and by `npm
-test`, which the CI runs as it will run that first test. What the pages of
-every node share is tested in WWCP_Node.
+The web interface's own test, `src/pages/pages.test.ts` in the same directory,
+holds the gateway's pages to what every page of every node is held to, by
+WWCP_Node's `Frontend/test/pages.ts`: a page with a form says whether it holds
+a draft, holds every form it has, asks before its Reload throws one away, and
+reads a number so that an emptied field is not 0. None of the gateway's pages
+has a form yet, and the test says so - a page that gets one turns it red until
+it is named there. `npm run typecheck:test` and `npm test` run it, as the CI
+does; what the pages of every node share is tested in WWCP_Node.
 
 
 ### Where things are
