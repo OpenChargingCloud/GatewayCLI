@@ -66,7 +66,10 @@ dotnet build GatewayCLI.slnx
 dotnet run --project GatewayCLI
 ```
 
-The build needs the .NET 10 SDK and Node.js. `dotnet build
+The build needs the .NET 10 SDK and Node.js. The npm step runs only when
+something changed under `libs/Gateway/Gateway/Frontend/src`, or under
+`libs/WWCP_Node/Frontend/src`, which holds what the web interface of every
+kind of node shares and is bundled in as `@node/...`. `dotnet build
 -p:SkipFrontendBuild=true` leaves the npm step out and reuses whatever is in
 `libs/Gateway/Gateway/Frontend/dist`.
 
@@ -337,9 +340,9 @@ change, without rebuilding the C# side.
 | `GatewayCLI/CLI/` | the prompt, and in `CLICommands/` what can be typed at it - one file per command |
 | `GatewayCLI/PKISetup.cs` | the bench script that built a test PKI; kept for what it knows, not compiled |
 | `libs/Gateway/Gateway/` | the gateway itself - what kind of node it is, its roles, the kinds of certificate it keeps, and its JSON API, the node's with nothing of its own on top yet |
-| `libs/Gateway/Gateway/Frontend/` | the web interface: TypeScript and SCSS, bundled by webpack |
+| `libs/Gateway/Gateway/Frontend/` | the web interface: TypeScript and SCSS, bundled by webpack together with what every node's pages stand on, imported as `@node/...` |
 | `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names, its roles, which of its certificates is told what it is for - and the node's conformance suite, asked of a gateway |
-| `libs/WWCP_Node/` | the node below it, the same as the vehicle's: the log, the configuration file and what it may say, DNS and NTS, the certificate store, the accounts, the web server and the JSON API every node answers - and in `WWCP_Node_TestKit/` what every node has to pass |
+| `libs/WWCP_Node/` | the node below it, the same as the vehicle's: the log, the configuration file and what it may say, DNS and NTS, the certificate store, the accounts, the web server and the JSON API every node answers, in `Frontend/src` what every node's web interface shares - and in `WWCP_Node_TestKit/` what every node has to pass |
 | `libs/WWCP_OCPP/` | the protocol, and the OCPP gateway the forwarding will be built on |
 | `.github/workflows/` | what runs on every push, and what runs at night |
 

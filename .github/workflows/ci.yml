@@ -100,7 +100,9 @@ jobs:
       # What the .NET build does not cover. webpack type-checks the modules it
       # can reach from the entry point, which leaves out the test files; and
       # the frontend's own tests are run by node, so nothing in a dotnet build
-      # would ever execute them.
+      # would ever execute them. The type checks take in what the pages share
+      # with every kind of node, from libs/WWCP_Node/Frontend/src, as the
+      # gateway uses it; that code's own tests are run by WWCP_Node's CI.
       #
       # node_modules is already there — the build put it there — so this costs
       # seconds. One leg, because TypeScript does not know which platform it is
