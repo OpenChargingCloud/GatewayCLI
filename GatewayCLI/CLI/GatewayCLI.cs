@@ -19,7 +19,7 @@
 
 using System.Reflection;
 
-using org.GraphDefined.Vanaheimr.CLI;
+using cloud.charging.open.protocols.WWCP.Node.CommandLine;
 
 #endregion
 
@@ -36,11 +36,14 @@ namespace cloud.charging.open.Gateway.CommandLine
     /// a third way of asking for the same thing, beside the web interface and
     /// the switches at a start - never an implementation of its own.
     ///
-    /// Commands are not listed anywhere. The constructor asks Styx to walk this
-    /// assembly for anything that implements ICLICommand and can be built from
-    /// a GatewayCLI, so a new command is a new file and nothing else.
+    /// Commands are not listed anywhere. The commands every node has - syncNTS
+    /// among them - are the node's, and NodeCLI, which this derives from,
+    /// finds them in WWCP_Node. The constructor registers this type as well,
+    /// so that this assembly is walked for anything that implements
+    /// ICLICommand and can be built from a GatewayCLI: a command of the
+    /// gateway's own is a new file and nothing else. There is none yet.
     /// </remarks>
-    public class GatewayCLI : CLI
+    public class GatewayCLI : NodeCLI
     {
 
         #region Properties
@@ -58,11 +61,11 @@ namespace cloud.charging.open.Gateway.CommandLine
         /// Create the command line of the given gateway.
         /// </summary>
         /// <param name="Gateway">The running gateway.</param>
-        /// <param name="AssembliesWithCLICommands">Further assemblies to search for commands. This one is searched either way.</param>
+        /// <param name="AssembliesWithCLICommands">Further assemblies to search for commands. This one and WWCP_Node are searched either way.</param>
         public GatewayCLI(Gateway            Gateway,
                           params Assembly[]  AssembliesWithCLICommands)
 
-            : base(AssembliesWithCLICommands)
+            : base(Gateway, AssembliesWithCLICommands)
 
         {
 

@@ -267,8 +267,10 @@ gateway:2353> help
 ```
 
 `help` lists what can be typed, `quit` leaves, **Tab** completes and **↑**
-walks back through what was typed before. A command is one file in
-`GatewayCLI/CLI/CLICommands/`, found by itself.
+walks back through what was typed before. The commands every node has -
+`syncNTS` among them - come with WWCP_Node's `NodeCLI`, which the prompt is
+built on; a command of the gateway's own would be one file beside
+`GatewayCLI/CLI/GatewayCLI.cs`, found by itself. There is none yet.
 
 `syncNTS` is **Sync now** from the **NTS client** page: the same time servers
 asked, the same entries in the log, and afterwards the same result on the page
@@ -324,7 +326,8 @@ where it was.
 
 Where there is no terminal - from a script, under a service manager, in CI, or
 with the output going into a file or through `| tee` - there is no prompt and
-nothing to type at, and the gateway runs until it is stopped.
+nothing to type at, and the gateway runs until it is stopped: by Ctrl+C, or
+by the SIGTERM a service manager sends.
 
 While working on the web interface, run `npm run watch` in
 `libs/Gateway/Gateway/Frontend` and start the gateway with `--frontend
@@ -346,7 +349,7 @@ does; what the pages of every node share is tested in WWCP_Node.
 | | |
 |---|---|
 | `GatewayCLI/` | the command line: switches, and what the console says at a start |
-| `GatewayCLI/CLI/` | the prompt, and in `CLICommands/` what can be typed at it - one file per command |
+| `GatewayCLI/CLI/` | the prompt, on WWCP_Node's `NodeCLI`, which brings what every node can be typed at - and a command of the gateway's own, one file each, once there is one |
 | `GatewayCLI/PKISetup.cs` | the bench script that built a test PKI; kept for what it knows, not compiled |
 | `libs/Gateway/Gateway/` | the gateway itself - what kind of node it is, its roles, the kinds of certificate it keeps, and its JSON API, the node's with nothing of its own on top yet |
 | `libs/Gateway/Gateway/Frontend/` | the web interface: TypeScript and SCSS, bundled by webpack together with what every node's pages stand on, imported as `@node/...` |
