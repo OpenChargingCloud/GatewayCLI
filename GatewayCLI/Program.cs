@@ -99,7 +99,8 @@ namespace cloud.charging.open.Gateway
                               CertificatesPath:  arguments.CertificatesPath,
                               ConsoleLogLevel:   arguments.ConsoleLogLevel,
                               LogPath:           arguments.LogPathBelow(root),
-                              BridgeDebugLog:    !arguments.NoTrace
+                              BridgeDebugLog:    !arguments.NoTrace,
+                              SSH:               arguments.SSH
                           );
             }
             catch (Exception e)
@@ -109,6 +110,10 @@ namespace cloud.charging.open.Gateway
 
             await using (gateway)
             {
+
+                // What somebody signed in over SSH gets: this program's own command
+                // line, with its commands beside the node's.
+                gateway.CommandLines = (terminal, caller) => new GatewayCLI(gateway, terminal, caller);
 
                 if (gateway.ImportCertificates(arguments, out _) is Int32 notImported)
                     return notImported;

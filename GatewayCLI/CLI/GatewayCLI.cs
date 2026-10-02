@@ -19,6 +19,8 @@
 
 using System.Reflection;
 
+using org.GraphDefined.Vanaheimr.CLI;
+
 using cloud.charging.open.protocols.WWCP.Node.CommandLine;
 
 #endregion
@@ -66,6 +68,29 @@ namespace cloud.charging.open.Gateway.CommandLine
                           params Assembly[]  AssembliesWithCLICommands)
 
             : base(Gateway, AssembliesWithCLICommands)
+
+        {
+
+            this.Gateway = Gateway;
+
+            RegisterCLIType(typeof(GatewayCLI));
+
+        }
+
+        /// <summary>
+        /// Create the command line of the given Gateway on the given terminal,
+        /// for the given caller - a session over SSH.
+        /// </summary>
+        /// <param name="Gateway">The running Gateway.</param>
+        /// <param name="Terminal">What the command line is typed at and written on.</param>
+        /// <param name="Caller">Who is typing at it.</param>
+        /// <param name="AssembliesWithCLICommands">Further assemblies to search for commands. This one and the node's are searched either way.</param>
+        public GatewayCLI(Gateway            Gateway,
+                          ICLITerminal       Terminal,
+                          CLICaller          Caller,
+                          params Assembly[]  AssembliesWithCLICommands)
+
+            : base(Gateway, Terminal, Caller, AssembliesWithCLICommands)
 
         {
 
