@@ -108,6 +108,7 @@ jobs:
           tmp="$(mktemp -d)"
           dotnet GatewayCLI/bin/Release/net10.0/GatewayCLI.dll \
               --port      18123 \
+              --ssh-port  22123 \
               --accounts  "$tmp/accounts" \
               --config    "$tmp/configuration.json" \
               --log-file  "$tmp/logs" \
@@ -132,11 +133,15 @@ jobs:
           api="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:18123/api/v1/status 2>/dev/null || true)"
           api="${api:-000}"
 
+          # As in ci.yml: the SSH server's first line, read while it runs.
+          ssh_banner="$(timeout 5 bash -c 'exec 3<>/dev/tcp/127.0.0.1/22123 && head -n 1 <&3' 2>/dev/null | tr -d '\r' || true)"
+
           kill "$pid" 2>/dev/null || true
           wait "$pid" 2>/dev/null || true
 
           echo "GET /                -> $root"
           echo "GET /api/v1/status   -> $api"
+          echo "SSH 22123            -> ${ssh_banner:-nothing}"
 
           # What the banner says this was built from - in every run, not only a
           # red one, because a stamp that reads "unknown" or "-dirty" is worth
@@ -155,6 +160,11 @@ jobs:
               echo "The JSON API answered $api where 401 was expected: it is supposed to be shut to anyone not signed in."
               fault=1
           fi
+          case "$ssh_banner" in
+              SSH-2.0-*) ;;
+              *) echo "The SSH server did not answer on 22123."
+                 fault=1 ;;
+          esac
 
           if [ "$fault" != 0 ]; then
               echo
