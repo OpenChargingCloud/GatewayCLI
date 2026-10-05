@@ -83,6 +83,17 @@ binds every address instead of the loopback, and `--help` lists the rest.
 They are every node's switches, read by WWCP_Node, as is what the console
 says once the gateway is up.
 
+**Recommended for the first start: give `root` your own SSH key** with it, so
+that you can type at the gateway over SSH from the start - see
+[Typing at it over SSH](#typing-at-it-over-ssh):
+
+```
+dotnet run --project GatewayCLI -- --authorize-ssh-key root=C:\Users\you\.ssh\id_ed25519.pub
+```
+
+Without it, the first start makes up a key pair for `root` and prints its
+private key once, below the password.
+
 Who may do what is decided by three roles when the configuration file says
 nothing else, each a user group of the HTTPExt API. What a role may do is an
 operation - `read`, `edit` or `run` - on a resource: the node's
@@ -355,11 +366,22 @@ machine, no files, no tunnels. `--ssh-port` moves it, `--no-ssh` switches it
 off.
 
 Whoever signs in is an account of the gateway, under its name, with a key of
-its own. The first start makes `root`; give it your public key once:
+its own. The first start makes `root`; give it your public key with that very
+start - the way recommended:
 
 ```
 dotnet run --project GatewayCLI -- --authorize-ssh-key root=C:\Users\you\.ssh\id_ed25519.pub
 ```
+
+The private key then stays on your machine, and no console ever shows it.
+A first start without `--authorize-ssh-key root=...` makes up a key pair for
+`root` instead and prints its private key once, right below the first-start
+box with the password: save the lines from `-----BEGIN OPENSSH PRIVATE KEY-----` to
+the END line as a file only you can read, and sign in with
+`ssh -i <file> -p 22353 root@127.0.0.1`, or import the file in PuTTYgen for
+PuTTY. Like the password it is kept nowhere - but a console may be kept, by a
+service's journal or a redirected output; replace it with your own key and
+take it out. `--authorize-ssh-key` also works at any later start.
 
 An OpenSSH `.pub` goes in as it is, and so does what PuTTYgen saves with *Save
 public key*. The key is kept in `accounts/ssh/root`, a file in the format of
