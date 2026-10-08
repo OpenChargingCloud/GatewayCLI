@@ -179,10 +179,9 @@ file - so beside the solution unless `--config` says otherwise - and is managed
 on the **Certificates** page or from the command line. A gateway keeps the four
 kinds of TLS and none of the seven of ISO 15118, which are a vehicle's.
 
-The store is the directory: one file per certificate below it, and an
+The store is the directory: one file per certificate and kind below it, and an
 `index.json` recording what a file cannot say about itself: what somebody calls
-it, whether it is switched on and - for a TLS root or a server certificate -
-what it is kept for. So a store copied to another machine arrives complete,
+it, whether it is switched on and what it is kept for. So a store copied to another machine arrives complete,
 and a lost index costs labels, switches and usages rather than certificates.
 
 A **tlsRoot** says which time server and which name server over TLS or HTTPS
@@ -194,9 +193,21 @@ server's dialog on the **NTS client** and **DNS client** pages offers the ones
 the store keeps for it. A **clientRoot** - what a client connecting to the
 gateway will have to chain to, a root or the CA below one that issues the
 clients - and a **tlsIdentity** - what the gateway presents in TLS, with its
-private key - are kept, and used by nothing here yet. An identity is told the
-listeners it is shown on where a kind of node names some; a gateway names none,
-so the page offers an identity nothing to be told.
+private key - are kept, and used by nothing here yet. An identity is offered
+the listeners it is shown on where a kind of node names some; a gateway names
+none, so the page offers an identity no uses, and a client root none either.
+Any certificate may still be marked with a usage made up - a mark nothing here
+acts on until a configuration or code names it.
+
+One certificate may be kept as several kinds - a self-signed identity as the
+root its peers are judged against, say - each switched on and off and told its
+usages on its own, under one handle and one name; switched off or deleted
+without a kind, it goes as every kind. A kind may be made up at the upload as
+well, kept below `certificates/custom/`. The page shows the store in three
+tabs: by usage, every certificate once with every kind it is kept as, and the
+upload, where certificates are pasted or files dropped, what is in them is said
+certificate by certificate before anything goes in, and every one of them is
+kept as every kind ticked.
 
 ```
 dotnet run --project GatewayCLI -- \
@@ -214,8 +225,7 @@ beside the certificate and the sub-CAs above it - the file `openssl` writes
 when it is given all three. An encrypted key block is opened with the same
 password a protected PKCS#12 would be. Certificates already in the store
 directory - copied in by hand, restored from a backup - are read again at every
-start and adopted, and **Re-read the directory** on the page does the same
-without a restart.
+start and adopted.
 
 Switching a certificate off is not the same as deleting it: the first leaves
 the file where it is, for the afternoon somebody takes a root out of service;
@@ -427,7 +437,7 @@ who else is signed in.
 | `GatewayCLI/PKISetup.cs` | the bench script that built a test PKI; kept for what it knows, not compiled |
 | `libs/Gateway/Gateway/` | the gateway itself - what kind of node it is, its roles, the kinds of certificate it keeps, and its JSON API, the node's with nothing of its own on top yet |
 | `libs/Gateway/Gateway/Frontend/` | the web interface: TypeScript and SCSS, bundled by webpack together with what every node's pages stand on, imported as `@node/...` |
-| `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names, its roles, which of its certificates is told what it is for - and the node's conformance suite, asked of a gateway |
+| `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names, its roles, which of its kinds of certificate a page offers what it may be for - and the node's conformance suite, asked of a gateway |
 | `libs/WWCP_Node/` | the node below it, the same as the vehicle's: the log, the configuration file and what it may say, DNS and NTS, the certificate store, the accounts, the web server and the JSON API every node answers, in `Frontend/src` what every node's web interface shares - and in `WWCP_Node_TestKit/` what every node has to pass |
 | `libs/WWCP_OCPP/` | the protocol, and the OCPP gateway the forwarding will be built on |
 | `.github/workflows/` | what runs on every push, and what runs at night |
