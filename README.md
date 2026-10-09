@@ -437,9 +437,10 @@ and shows a new one once, when it is made.
 
 Every account looks after its own keys on the web interface too: the name at
 the foot of the menu leads to its page, with its details, its API keys and its
-SSH keys - a key made or added there, switched off and on again, or removed. A
-key switched off lets nobody in until it is switched on again, and `sshKeys`
-lists it with ", switched off".
+SSH keys - a key made or added there, switched off and on again, or removed,
+each said in the log, tagged `web`, an API key by its beginning alone. A key
+switched off lets nobody in until it is switched on again, and `sshKeys` lists
+it with ", switched off".
 
 Everything works as at the console — Tab, the history, the log above the line
 being typed — with three differences. `quit`, `exit` and Ctrl+D leave the
