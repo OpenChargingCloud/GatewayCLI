@@ -176,13 +176,15 @@ it is checked against, when it was last checked and how far off it was then.
 Everything this gateway believes, the certificate it presents and every server
 it recognises lives in one store, `certificates/` beside the configuration
 file - so beside the solution unless `--config` says otherwise - and is managed
-on the **Certificates** page or from the command line. A gateway keeps the four
-kinds of TLS and none of the seven of ISO 15118, which are a vehicle's.
+on the **Certificates** and **Identities** pages or from the command line. A
+gateway keeps the four kinds of TLS and none of the seven of ISO 15118, which
+are a vehicle's.
 
 The store is the directory: one file per certificate and kind below it, and an
 `index.json` recording what a file cannot say about itself: what somebody calls
-it, whether it is switched on and what it is kept for. So a store copied to another machine arrives complete,
-and a lost index costs labels, switches and usages rather than certificates.
+it, whether it is switched on and what it is kept for. So a store copied to
+another machine arrives complete, and a lost index costs labels, switches and
+usages rather than certificates.
 
 A **tlsRoot** says which time server and which name server over TLS or HTTPS
 may be believed, beside the roots of the machine the gateway runs on - and is
@@ -192,22 +194,27 @@ certificate, kept so that the server can be held to it by its fingerprint; a
 server's dialog on the **NTS client** and **DNS client** pages offers the ones
 the store keeps for it. A **clientRoot** - what a client connecting to the
 gateway will have to chain to, a root or the CA below one that issues the
-clients - and a **tlsIdentity** - what the gateway presents in TLS, with its
-private key - are kept, and used by nothing here yet. An identity is offered
-the listeners it is shown on where a kind of node names some; a gateway names
-none, so the page offers an identity no uses, and a client root none either.
-Any certificate may still be marked with a usage made up - a mark nothing here
-acts on until a configuration or code names it.
+clients - and a **tlsIdentity** - who the gateway is as a client, with its
+private key: what it will show a server that asks - are kept, and used by
+nothing here yet, so a page offers them no uses; a client's identity is shown
+on no listener. A gateway keeps no **tlsServerIdentity**, who a server of a
+node is, offered the listeners it is shown on: it names none, and has no
+**Server certificates** page. Any certificate may still be marked with a usage
+made up - a mark nothing here acts on until a configuration or code names it.
 
 One certificate may be kept as several kinds - a self-signed identity as the
 root its peers are judged against, say - each switched on and off and told its
 usages on its own, under one handle and one name; switched off or deleted
 without a kind, it goes as every kind. A kind may be made up at the upload as
-well, kept below `certificates/custom/`. The page shows the store in three
-tabs: by usage, every certificate once with every kind it is kept as, and the
-upload, where certificates are pasted or files dropped, what is in them is said
-certificate by certificate before anything goes in, and every one of them is
-kept as every kind ticked.
+well, kept below `certificates/custom/`.
+
+**Certificates** keeps certificates alone, with no private key: the roots and
+the server certificates - an upload there leaves a key in the box out, and
+says where it goes. **Identities** keeps who the gateway is as a client, each
+with its key. Each page has three tabs: by usage, every certificate once with
+every kind it is kept as, and the upload, where certificates are pasted or
+files dropped, what is in them is said certificate by certificate before
+anything goes in, and every one of them is kept as every kind ticked.
 
 ```
 dotnet run --project GatewayCLI -- \
@@ -437,7 +444,7 @@ who else is signed in.
 | `GatewayCLI/PKISetup.cs` | the bench script that built a test PKI; kept for what it knows, not compiled |
 | `libs/Gateway/Gateway/` | the gateway itself - what kind of node it is, its roles, the kinds of certificate it keeps, and its JSON API, the node's with nothing of its own on top yet |
 | `libs/Gateway/Gateway/Frontend/` | the web interface: TypeScript and SCSS, bundled by webpack together with what every node's pages stand on, imported as `@node/...` |
-| `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names, its roles, which of its kinds of certificate a page offers what it may be for - and the node's conformance suite, asked of a gateway |
+| `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names, its roles, which of its kinds of certificate is on which page and offered what it may be for - and the node's conformance suite, asked of a gateway |
 | `libs/WWCP_Node/` | the node below it, the same as the vehicle's: the log, the configuration file and what it may say, DNS and NTS, the certificate store, the accounts, the web server and the JSON API every node answers, in `Frontend/src` what every node's web interface shares - and in `WWCP_Node_TestKit/` what every node has to pass |
 | `libs/WWCP_OCPP/` | the protocol, and the OCPP gateway the forwarding will be built on |
 | `.github/workflows/` | what runs on every push, and what runs at night |
