@@ -97,14 +97,14 @@ private key once, below the password.
 Who may do what is decided by three roles when the configuration file says
 nothing else, each a user group of the HTTPExt API. What a role may do is an
 operation - `read`, `edit` or `run` - on a resource: the node's
-`configuration`, `dns`, `nts` and `certificates`; a gateway adds none of its
-own yet.
+`configuration`, `dns`, `nts`, `certificates` and `ssh`; a gateway adds none of
+its own yet.
 
-| role          | may                                                                        |
-|---------------|----------------------------------------------------------------------------|
-| `viewer`      | read everything: the configuration, the certificates, the log              |
-| `operator`    | that, and ask a name server or a time server something                     |
-| `systemadmin` | everything: change the name servers, the time servers and the certificates |
+| role          | may                                                                                         |
+|---------------|---------------------------------------------------------------------------------------------|
+| `viewer`      | read everything: the configuration, the certificates, the SSH server, the log               |
+| `operator`    | that, and ask a name server or a time server something                                      |
+| `systemadmin` | everything: change the name servers, the time servers, the certificates and the SSH server  |
 
 `viewer` and `systemadmin` are the node's, `operator` is the gateway's, in
 `libs/Gateway/Gateway/GatewayAccess.cs`. The account made at the first start is
@@ -382,6 +382,15 @@ loopback, or every address with `--any`. Nothing else is: no shell of the
 machine, no files, no tunnels. `--ssh-port` moves it, `--no-ssh` switches it
 off.
 
+The **SSH server** page under Configuration shows whether it runs, where, and
+whether passwords open it; its host key, with the fingerprint and a
+`known_hosts` line; who is at the command line now; the keys every account
+may sign in with; its limits and its algorithms. A `systemadmin` switches it on
+and off, moves it to another port or lets passwords open it there, at once and
+saved in the `ssh` section of the configuration file - a port that is taken is
+refused, and the server stays where it was. `--no-ssh` and `--ssh-port` still
+win over the file, and the page says so.
+
 Whoever signs in is an account of the gateway, under its name, with a key of
 its own. The first start makes `root`; give it your public key with that very
 start - the way recommended:
@@ -410,7 +419,8 @@ ssh -p 22353 root@127.0.0.1
 or, in PuTTY, host `127.0.0.1`, port `22353`, *Connection → Data → Auto-login
 username* `root`, and the private key under *Connection → SSH → Auth →
 Credentials*. The first time, PuTTY asks whether to trust the gateway's host
-key: the banner prints its fingerprint under `SSH`, to compare it with.
+key: the banner prints its fingerprint under `SSH`, and the SSH server page
+shows it, to compare it with.
 
 The `sshKeys` command manages an account's keys - at the console, or over SSH
 for the account signed in:
