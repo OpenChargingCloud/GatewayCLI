@@ -199,7 +199,7 @@ private key: what it will show a server that asks - are kept, and used by
 nothing here yet, so a page offers them no uses; a client's identity is shown
 on no listener. A gateway keeps no **tlsServerIdentity**, who a server of a
 node is, offered the listeners it is shown on: it names none, and has no
-**Server certificates** page. Any certificate may still be marked with a usage
+**Server identities** page. Any certificate may still be marked with a usage
 made up - a mark nothing here acts on until a configuration or code names it.
 
 One certificate may be kept as several kinds - a self-signed identity as the
