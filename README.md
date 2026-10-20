@@ -134,14 +134,33 @@ saying more than that, the form the DNS page writes the list back in:
 `udp://192.168.1.1:53` is how the log names a name server, not a form the file
 takes. A file saying it is refused at the start, with the entry named.
 
+The time servers are named in groups, under the `nts` section's `groups`: the
+legal one, which legal time rests on - the PTB's four, of which two have to
+answer, while it names none - and as many others as a gateway is given, each
+switched off until it names a server:
+
+```json
+"nts": { "groups": {
+  "legal": { "servers": [ "ptbtime1.ptb.de", "ptbtime2.ptb.de" ], "minServers": 2 },
+  "local": { "servers": [ "lc1.local" ], "checkEverySeconds": 30 }
+} }
+```
+
+A section that says anything outside of `groups` - `"nts": { "enabled": false }`,
+as files said before there were groups - is refused at the start, with where
+its keys belong: `"nts": { "groups": { "legal": { "enabled": false } } }`.
+
 The **DNS** page looks a name up the way the gateway resolves anything - or
-asks one of the name servers on its own. The **NTS** page is the group of time
-servers: a row for each, with what it said in the last synchronisation and the
-root CA its last key exchange ended at, an **Edit**, and a **Test** that takes
-the server apart step by step - the name, the TLS handshake and every
-certificate of the chain with the days it has left, the key exchange, the
-authenticated NTP request. Below the servers is what the group is held to, and
-last **Sync now**, which asks them all.
+asks one of the name servers on its own. The **NTS** page has a tab for each
+group of time servers, the legal one first, and a **+** tab that makes another,
+switched off. A group's tab has a row for each of its servers, with what it
+said in the last synchronisation and the root CA its last key exchange ended
+at, an **Edit**, and a **Test** that takes the server apart step by step - the
+name, the TLS handshake and every certificate of the chain with the days it
+has left, the key exchange, the authenticated NTP request. Below the servers is
+what the group is held to - what counts as legal time on the legal group's tab
+alone - and last **Sync now**, which asks them all. A group switched off can be
+taken away there.
 
 A server can be held to more than a certificate authority vouching for it. In
 a server's dialog on the **NTS** page - and on the **DNS** page for a name
@@ -164,10 +183,11 @@ open. So the pages send every server back with what they showed it held to,
 under `pinsAsShown`: their next save keeps what was learned in between, and
 still takes away a pin that was shown and removed there.
 
-The clock of the gateway is checked against the group every fifteen minutes.
+The clock of the gateway is checked against every group switched on - the legal
+one every fifteen minutes unless its `checkEverySeconds` says otherwise.
 It is never set from the answer: that is the operating system's business, and
 a button that stepped the clock of a running gateway would be a surprise.
-`GET /api/v1/clock` says, to anybody signed in, what time it is here, the group
+`GET /api/v1/clock` says, to anybody signed in, what time it is here, the groups
 it is checked against, when it was last checked and how far off it was then.
 
 
@@ -302,9 +322,11 @@ walks back through what was typed before. The commands every node has -
 built on; a command of the gateway's own would be one file beside
 `GatewayCLI/CLI/GatewayCLI.cs`, found by itself. There is none yet.
 
-`syncNTS` is **Sync now** from the **NTS client** page: the same time servers
-asked, the same entries in the log, and afterwards the same result on the page
-as its last synchronisation. The one line that differs is the one saying who
+`syncNTS` is **Sync now** from the legal group's tab of the **NTS client**
+page, and `syncNTS <group>` from another's: the same time servers asked, the
+same entries in the log, and afterwards the same result on the page as its last
+synchronisation. `listNTSGroups` lists the groups, each with its servers and
+what its last check found. The one line that differs is the one saying who
 asked - the page names the account that pressed the button and tags it `web`,
 the prompt says it was the command line and tags it `cli`. Like the button, it
 asks and reports and leaves the clock alone. The console gets a line for each
