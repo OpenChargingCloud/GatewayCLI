@@ -79,9 +79,44 @@ Hermod's HTTPExt API, mounted under `/ext`. The web interface is on
 <http://127.0.0.1:2353/> - beside the vehicle's 2347, the station's 2348, the
 local controller's 2350 and the CSMS's 2351, so that a gateway on the same
 bench as the things it sits between fights none of them over a port. `--any`
-binds every address instead of the loopback, and `--help` lists the rest.
-They are every node's switches, read by WWCP_Node, as is what the console
-says once the gateway is up.
+binds every address instead of the loopback, and `--help` lists the rest -
+among them HTTPS's `--https`, `--https-cert <file>`, `--https-key <file>`,
+`--redirect-port <number>` and `--trusted-proxy <address>`. They are every
+node's switches, read by WWCP_Node, as is what the console says once the
+gateway is up.
+
+**`--any` puts the sign-in on the network.** With it come the password, the
+API keys and the session cookie - in the clear, unless the gateway speaks
+HTTPS itself or a proxy in front of it does and is named as trusted, both in
+the `web` section of the configuration file. Behind nginx:
+
+```json
+"web": { "trustedProxies": [ "127.0.0.1", "::1" ] }
+```
+
+With certbot's files and no proxy:
+
+```json
+"web": { "tls": { "certificate": { "fullchain": "/etc/letsencrypt/live/gateway.example.org/fullchain.pem",
+                                   "privateKey": "/etc/letsencrypt/live/gateway.example.org/privkey.pem" },
+                  "redirectPort": 80 } }
+```
+
+or `"certificate": "store"` with the store's TLS server identity, put there
+with `--import-certificate tlsServerIdentity=<file>` or on the **Server
+identities** page. The switches say the same and win over the file:
+
+```
+dotnet run --project GatewayCLI -- --any --https --import-certificate tlsServerIdentity=gateway.p12
+```
+
+Then the session cookie is a secure one and HSTS is sent; behind a trusted
+proxy that is decided per request, from its `X-Forwarded-Proto`, and the
+client it names is who the log and the sign-in's ration of guesses see.
+Neither said, with `--any`, the gateway warns in its log, below its banner
+and above every page of its web interface to its administrators.
+[WWCP_Node's README](https://github.com/OpenChargingCloud/WWCP_Node#https-and-the-proxies-in-front)
+says the rest.
 
 **Recommended for the first start: give `root` your own SSH key** with it, so
 that you can type at the gateway over SSH from the start - see
@@ -196,9 +231,10 @@ it is checked against, when it was last checked and how far off it was then.
 Everything this gateway believes, the certificate it presents and every server
 it recognises lives in one store, `certificates/` beside the configuration
 file - so beside the solution unless `--config` says otherwise - and is managed
-on the **Certificates** and **Identities** pages or from the command line. A
-gateway keeps the four kinds of TLS and none of the seven of ISO 15118, which
-are a vehicle's.
+on the **Certificates**, **Identities** and **Server identities** pages or from
+the command line. A gateway keeps the four kinds of TLS, the identity its web
+interface shows over HTTPS, and none of the seven of ISO 15118, which are a
+vehicle's.
 
 The store is the directory: one file per certificate and kind below it, and an
 `index.json` recording what a file cannot say about itself: what somebody calls
@@ -217,10 +253,12 @@ gateway will have to chain to, a root or the CA below one that issues the
 clients - and a **tlsIdentity** - who the gateway is as a client, with its
 private key: what it will show a server that asks - are kept, and used by
 nothing here yet, so a page offers them no uses; a client's identity is shown
-on no listener. A gateway keeps no **tlsServerIdentity**, who a server of a
-node is, offered the listeners it is shown on: it names none, and has no
-**Server identities** page. Any certificate may still be marked with a usage
-made up - a mark nothing here acts on until a configuration or code names it.
+on no listener. A **tlsServerIdentity**, with its private key, is what the web
+interface, the JSON API and the sign-in show over HTTPS, where the `web`
+section says `"tls": { "certificate": "store" }` or the command line `--https`,
+and is looked after on the **Server identities** page. Any certificate may
+still be marked with a usage made up - a mark nothing here acts on until a
+configuration or code names it.
 
 One certificate may be kept as several kinds - a self-signed identity as the
 root its peers are judged against, say - each switched on and off and told its
@@ -231,7 +269,8 @@ well, kept below `certificates/custom/`.
 **Certificates** keeps certificates alone, with no private key: the roots and
 the server certificates - an upload there leaves a key in the box out, and
 says where it goes. **Identities** keeps who the gateway is as a client, each
-with its key. Each page has three tabs: by usage, every certificate once with
+with its key, and **Server identities** what its web interface shows over
+HTTPS. Each page has three tabs: by usage, every certificate once with
 every kind it is kept as, and the upload, where certificates are pasted or
 files dropped, what is in them is said certificate by certificate before
 anything goes in, and every one of them is kept as every kind ticked.
@@ -484,7 +523,7 @@ who else is signed in.
 | `GatewayCLI/PKISetup.cs` | the bench script that built a test PKI; kept for what it knows, not compiled |
 | `libs/Gateway/Gateway/` | the gateway itself - what kind of node it is, its roles, the kinds of certificate it keeps, and its JSON API, the node's with nothing of its own on top yet |
 | `libs/Gateway/Gateway/Frontend/` | the web interface: TypeScript and SCSS, bundled by webpack together with what every node's pages stand on, imported as `@node/...` |
-| `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names, its roles, which of its kinds of certificate is on which page and offered what it may be for - and the node's conformance suite, asked of a gateway |
+| `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names, its roles, which of its kinds of certificate is on which page and offered what it may be for, its web interface over HTTPS and behind a trusted proxy - and the node's conformance suite, asked of a gateway |
 | `libs/WWCP_Node/` | the node below it, the same as the vehicle's: the log, the configuration file and what it may say, DNS and NTS, the certificate store, the accounts, the web server and the JSON API every node answers, in `Frontend/src` what every node's web interface shares - and in `WWCP_Node_TestKit/` what every node has to pass |
 | `libs/WWCP_OCPP/` | the protocol, and the OCPP gateway the forwarding will be built on |
 | `.github/workflows/` | what runs on every push, and what runs at night |
