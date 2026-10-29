@@ -493,18 +493,29 @@ sshKeys root remove SHA256:abc
 ```
 
 `remove` takes the fingerprint `sshKeys` lists, or enough of its beginning, and
-locks that key out at once. `apiKeys` does the same for the account's API keys
-and lists each of them whole; `apiKeys root add key <key>` takes a key of your
-own - at least 20 letters, digits or `. _ ~ -` - and without one it makes one.
+locks that key out at once, and ends an SSH session it let in. `apiKeys` does
+the same for the account's API keys; `apiKeys root add key <key>` takes a key
+of your own - at least 20 letters, digits or `. _ ~ -` - and without one it
+makes one. An API key is shown once, when it is made: the gateway keeps its
+SHA-256 alone, and lists and logs it by its first six characters and the
+beginning of its hash, `alices... #41WyMKor`; `remove` takes the key, that
+beginning of it, or `#` and the beginning of its hash. Keys and sign-ins kept
+by a gateway from before 2026-10-29 were kept whole and are not taken over:
+make the API keys again, and sign in again. Such an old key lets nobody in,
+and `apiKeys` lists it by `#` and the first characters of the key itself;
+`remove #<those characters>` takes it out of `users.db`, where it is still
+kept whole.
 
 Every account looks after its own keys on the web interface too: the name at
 the foot of the menu leads to its page, with its details, its API keys and its
 SSH keys - a key made or added there, switched off and on again, or removed,
-each said in the log, tagged `web`, an API key by its beginning alone. A key
+each said in the log, tagged `web`, an API key by its hint and hash. A key
 switched off lets nobody in until it is switched on again, and `sshKeys` lists
 it with ", switched off".
 
-Everything works as at the console — Tab, the history, the log above the line
+Everything works as at the console — Tab, the history (kept per account in
+`accounts/history/` and brought back at the next session, without a line that
+names an API key), the log above the line
 being typed — with three differences. `quit`, `exit` and Ctrl+D leave the
 session, and the gateway keeps running. The account may do what its roles let
 it do on the web interface, and the log names it: "'root' at the command line
