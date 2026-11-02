@@ -185,6 +185,12 @@ A section that says anything outside of `groups` - `"nts": { "enabled": false }`
 as files said before there were groups - is refused at the start, with where
 its keys belong: `"nts": { "groups": { "legal": { "enabled": false } } }`.
 
+Every time server has an id that names it across all groups: one of its own,
+`{ "id": "lc-time", "hostname": "lc1.local" }` - lower-case letters, digits and
+hyphens, at most 50 characters - or, without one, `<group>-<n>` by its place,
+`local-1`. A server keeps its id when another is deleted or its name changes,
+and the log says of every change of a group who made it, `(by web:root)`.
+
 The **DNS** page looks a name up the way the gateway resolves anything - or
 asks one of the name servers on its own. The **NTS** page has a tab for each
 group of time servers, the legal one first, and a **+** tab that makes another,
