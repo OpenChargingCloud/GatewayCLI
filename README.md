@@ -505,12 +505,7 @@ of your own - at least 20 letters, digits or `. _ ~ -` - and without one it
 makes one. An API key is shown once, when it is made: the gateway keeps its
 SHA-256 alone, and lists and logs it by its first six characters and the
 beginning of its hash, `alices... #41WyMKor`; `remove` takes the key, that
-beginning of it, or `#` and the beginning of its hash. Keys and sign-ins kept
-by a gateway from before 2026-10-29 were kept whole and are not taken over:
-make the API keys again, and sign in again. Such an old key lets nobody in,
-and `apiKeys` lists it by `#` and the first characters of the key itself;
-`remove #<those characters>` takes it out of `users.db`, where it is still
-kept whole.
+beginning of it, or `#` and the beginning of its hash.
 
 Every account looks after its own keys on the web interface too: the name at
 the foot of the menu leads to its page, with its details, its API keys and its
