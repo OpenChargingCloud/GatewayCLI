@@ -214,9 +214,12 @@ and whether it is held to what it is first believed with. A chain has to end at
 a root the machine it runs on trusts, or at one of the gateway's own - a TLS
 root of its store kept for that kind of server, or any root of the store the
 server is held to (see [Certificates](#certificates)); a pin then narrows that
-to the certificates and roots it names. What every server was last believed
-with is kept in `known-servers.json` beside the configuration file -
-fingerprints and nothing else - so that another certificate is noticed even
+to the certificates and roots it names. A server held to a group of roots,
+`"rootGroup": "csms1"` in its entry, is anchored at the roots of the store
+marked `ntsca-csms1` - `dnsca-csms1` for a name server - and at no other: not
+at one the machine trusts, and not at a pinned one outside the group. What
+every server was last believed with is kept in `known-servers.json` beside the
+configuration file - fingerprints and nothing else - so that another certificate is noticed even
 where a server is held to none.
 
 What is learned on first use is written into the server's entry at the first
