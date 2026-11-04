@@ -449,9 +449,10 @@ does; what the pages of every node share is tested in WWCP_Node.
 
 The same prompt is served over SSH, on port 22353 — twenty thousand above the
 web interface's — and on the addresses the web interface listens on: the
-loopback, or every address with `--any`. Nothing else is: no shell of the
-machine, no files, no tunnels. `--ssh-port` moves it, `--no-ssh` switches it
-off.
+loopback, or every address with `--any`. Nothing else is - no shell of the
+machine, no tunnels -, and files only where SFTP is switched on (see
+[Files over SFTP](#files-over-sftp)). `--ssh-port` moves it, `--no-ssh`
+switches it off.
 
 The **SSH server** page under Configuration shows whether it runs, where, and
 whether passwords open it; its host key, with the fingerprint and a
@@ -528,6 +529,33 @@ over SSH asked this gateway to synchronise its time.", tagged `cli` and `ssh`.
 And the session's log starts at the console's level and is its own: `log debug`
 shows everything here, `log off` nothing, for this session alone. `who` says
 who else is signed in.
+
+
+### Files over SFTP
+
+The gateway also serves its log files over SFTP, on the same port and to the
+same keys, where the `ssh` section of the configuration file says so:
+
+```json
+"ssh": { "sftp": true }
+```
+
+It is off unless it says `true`, and a `systemadmin` switches it on the SSH
+server page as well - without a restart: the next session is served, and
+switching it off ends the SFTP sessions that are open. The log line about the
+SSH server at the start says whether SFTP is served.
+
+```
+sftp -P 22353 root@127.0.0.1
+```
+
+or WinSCP with the same host, port, user and key. The root shows `/logs`, with
+the day's log files, and `/logs/metrological`, with the metrological log and
+`signing-key.pub.pem` - never the private signing key. Whoever may read the
+Logs page reads them, and nobody writes there, `root` included: no upload, no
+folder, nothing removed or renamed. The log says who opened SFTP from where,
+every file downloaded, and in one line what the session came to; `who` and
+the SSH server page list an SFTP session beside the command lines.
 
 
 ### Where things are
