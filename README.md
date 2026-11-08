@@ -167,7 +167,11 @@ saying more than that, the form the DNS page writes the list back in:
 ```
 
 `udp://192.168.1.1:53` is how the log names a name server, not a form the file
-takes. A file saying it is refused at the start, with the entry named.
+takes. A file saying it is refused at the start, with the entry named. A name
+server has an id as a time server has, `{ "id": "home", "address":
+"192.168.1.1" }`, or `dns-<n>` by its place, and a save of `"servers": null`
+gives the gateway back the name servers it was started with - the DNS page has
+a button for it.
 
 The time servers are named in groups, under the `nts` section's `groups`: the
 legal one, which legal time rests on - the PTB's four, of which two have to
@@ -510,7 +514,9 @@ of your own - at least 20 letters, digits or `. _ ~ -` - and without one it
 makes one. An API key is shown once, when it is made: the gateway keeps its
 SHA-256 alone, and lists and logs it by its first six characters and the
 beginning of its hash, `alices... #41WyMKor`; `remove` takes the key, that
-beginning of it, or `#` and the beginning of its hash.
+beginning of it, or `#` and the beginning of its hash. A key is read-only
+unless `readWrite` says otherwise, and a read-only key changes nothing - not
+below `/ext` either, where the account, its keys and its password are: 403.
 
 Every account looks after its own keys on the web interface too: the name at
 the foot of the menu leads to its page, with its details, its API keys and its
@@ -556,6 +562,22 @@ Logs page reads them, and nobody writes there, `root` included: no upload, no
 folder, nothing removed or renamed. The log says who opened SFTP from where,
 every file downloaded, and in one line what the session came to; `who` and
 the SSH server page list an SFTP session beside the command lines.
+
+The `ssh` section's `accessRules` narrow who comes in, and never let in
+anyone the accounts, roles and keys would not: an ordered list, the first
+rule that matches deciding, each with an `action` - `allow` or `deny` - and
+what it is about, left out for everything: `principal` (`account:root`,
+`group:operator`, with `*` and `?`), `service` (`shell`, `sftp`), `source`
+and `localAddress` (addresses or networks), `authMethod` and a `comment`.
+
+```json
+"ssh": { "sftp": true, "accessRules": [
+  { "action": "deny", "service": "sftp", "source": [ "10.0.0.0/8" ], "comment": "no files from the field" }
+] }
+```
+
+A rule misspelt is refused at the start rather than ignored, a session the
+rules now refuse ends, and the log says which rule refused whom, from where.
 
 
 ### Where things are
