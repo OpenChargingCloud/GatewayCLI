@@ -373,7 +373,10 @@ gateway:2353> help
 walks back through what was typed before. The commands every node has -
 `syncNTS` among them - come with WWCP_Node's `NodeCLI`, which the prompt is
 built on; a command of the gateway's own would be one file beside
-`GatewayCLI/CLI/GatewayCLI.cs`, found by itself. There is none yet.
+`libs/Gateway/Gateway/CommandLine/GatewayCLI.cs`, found by itself. There is
+none yet. The command line is the gateway's and not this program's: whoever
+signs in over SSH gets it whichever program runs the gateway, and
+`libs/Gateway/GatewayTests/` tests it.
 
 `syncNTS` is **Sync now** from the legal group's tab of the **NTS client**
 page, and `syncNTS <group>` from another's: the same time servers asked, the
@@ -585,19 +588,19 @@ rules now refuse ends, and the log says which rule refused whom, from where.
 | | |
 |---|---|
 | `GatewayCLI/` | the program: every node's switches and banner - WWCP_Node's, in a gateway's words - and the gateway it starts with them |
-| `GatewayCLI/CLI/` | the prompt, on WWCP_Node's `NodeCLI`, which brings what every node can be typed at - and a command of the gateway's own, one file each, once there is one |
 | `GatewayCLI/PKISetup.cs` | the bench script that built a test PKI; kept for what it knows, not compiled |
 | `libs/Gateway/Gateway/` | the gateway itself - what kind of node it is, its roles, the kinds of certificate it keeps, and its JSON API, the node's with nothing of its own on top yet |
+| `libs/Gateway/Gateway/CommandLine/` | the prompt, on WWCP_Node's `NodeCLI`, which brings what every node can be typed at - and a command of the gateway's own, one file each, once there is one |
 | `libs/Gateway/Gateway/Frontend/` | the web interface: TypeScript and SCSS, bundled by webpack together with what every node's pages stand on, imported as `@node/...` |
-| `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names, its roles, which of its kinds of certificate is on which page and offered what it may be for, its web interface over HTTPS and behind a trusted proxy - and the node's conformance suite, asked of a gateway |
+| `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names, its roles, which of its kinds of certificate is on which page and offered what it may be for, its web interface over HTTPS and behind a trusted proxy, its command line - and the node's conformance suite, asked of a gateway |
 | `libs/WWCP_Node/` | the node below it, the same as the vehicle's: the log, the configuration file and what it may say, DNS and NTS, the certificate store, the accounts, the web server and the JSON API every node answers, in `Frontend/src` what every node's web interface shares - and in `WWCP_Node_TestKit/` what every node has to pass |
 | `libs/WWCP_OCPP/` | the protocol, and the OCPP gateway the forwarding will be built on |
 | `.github/workflows/` | what runs on every push, and what runs at night |
 
-The command line is this program's vocabulary and nothing else - the switches
-it is started with and the commands it can be typed at. What a gateway *is*,
-and what it does, lives in `libs/Gateway`; what every program of the family
-is before it is anything in particular lives in `libs/WWCP_Node`.
+This program is the switches it is started with and nothing else. What a
+gateway *is*, what it does and what it can be told at its prompt lives in
+`libs/Gateway`; what every program of the family is before it is anything in
+particular lives in `libs/WWCP_Node`.
 
 
 ### Your participation
