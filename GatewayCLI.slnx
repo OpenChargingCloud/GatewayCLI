@@ -11,13 +11,7 @@
   </Folder>
   <Folder Name="/Dependencies/OCPP/OCPPv2.1/">
     <Project Path="libs/WWCP_OCPP/WWCP_OCPPv2.1/WWCP_OCPPv2.1.csproj" />
-    <Project Path="libs/WWCP_OCPP/WWCP_OCPPv2.1_Adapter/WWCP_OCPPv2.1_Adapter.csproj" />
-    <Project Path="libs/WWCP_OCPP/WWCP_OCPPv2.1_ChargingStation/WWCP_OCPPv2.1_ChargingStation.csproj" />
-    <Project Path="libs/WWCP_OCPP/WWCP_OCPPv2.1_CSMS/WWCP_OCPPv2.1_CSMS.csproj" />
-    <Project Path="libs/WWCP_OCPP/WWCP_OCPPv2.1_EnergyMeter/WWCP_OCPPv2.1_EnergyMeter.csproj" />
     <Project Path="libs/WWCP_OCPP/WWCP_OCPPv2.1_Gateway/WWCP_OCPPv2.1_Gateway.csproj" />
-    <Project Path="libs/WWCP_OCPP/WWCP_OCPPv2.1_LocalController/WWCP_OCPPv2.1_LocalController.csproj" />
-    <Project Path="libs/WWCP_OCPP/WWCP_OCPPv2.1_Tests/WWCP_OCPPv2.1_Tests.csproj" />
   </Folder>
   <Folder Name="/Dependencies/OpenChargingCloud/">
     <Project Path="libs/ChargyCore.NET/ChargyCore/ChargyCore.csproj" />
@@ -32,8 +26,6 @@
     <Project Path="libs/WWCP_Node/WWCP_Node_Tests/WWCP_Node_Tests.csproj" />
     <Project Path="libs/WWCP_POI/WWCP_POI2/WWCP_POI2.csproj" />
     <Project Path="libs/WWCP_POI/WWCP_POI2_Tests/WWCP_POI2_Tests.csproj" />
-    <Project Path="libs/WWCP_POI/WWCP_POI3/WWCP_POI3.csproj" />
-    <Project Path="libs/WWCP_POI/WWCP_POI3_Tests/WWCP_POI3_Tests.csproj" />
   </Folder>
   <Folder Name="/Dependencies/Vanaheimr/">
     <Project Path="libs/Hermod/Hermod/Hermod.csproj" />

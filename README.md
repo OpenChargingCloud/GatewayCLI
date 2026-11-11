@@ -66,7 +66,7 @@ dotnet build GatewayCLI.slnx
 dotnet run --project GatewayCLI
 ```
 
-The build needs the .NET 10 SDK and Node.js. The npm step runs only when
+The build needs the .NET 11 SDK and Node.js. The npm step runs only when
 something changed under `libs/Gateway/Gateway/Frontend/src`, or under
 `libs/WWCP_Node/Frontend/src`, which holds what the web interface of every
 kind of node shares and is bundled in as `@node/...`. `dotnet build
