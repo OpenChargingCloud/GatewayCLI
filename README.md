@@ -305,6 +305,14 @@ beside the web interface on 2353, and not on a local controller's 2351:
 "ocppServer": { "enabled": true, "port": 2354, "securityProfiles": [ 2, 3 ], "reachableAs": [ "gateway.example.org" ] }
 ```
 
+`"http3": true` takes WebSockets over HTTP/3 as well, on the UDP port of the
+same number - 2354/udp here, which a firewall has to let through as well. Off
+where the file says nothing, only on a port that is encrypted, and switched on
+and off at once on the **Charging stations** page. The section is the one a
+charging station has; a gateway has one port for every version of OCPP, offers
+OCPP 1.6 where `subprotocols` names `"ocpp1.6"`, and refuses `port16`, which is
+a station's.
+
 A CSMS the gateway cannot dial dials it on the same port: written down on the
 **Connections** page as a connection the other end makes, it is let in under
 the name its address ends with by the credentials it names, and is a
