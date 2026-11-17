@@ -310,6 +310,12 @@ web-login.json
 # the accounts.
 /certificates/
 
+# The connections the gateway dials, beside the configuration file, with their
+# passwords and shared secrets and the SSH keys it signs in with: the store a
+# charging station and a local controller keep under the same name. Written
+# the first time something is put in it, and nobody's to commit.
+/ocpp-connections/
+
 # Its SSH host key, the private half of who this vehicle is to every SSH
 # client: made at the first start with the SSH server on, and kept beside the
 # configuration file. Whoever has it can pose as this vehicle to anybody who

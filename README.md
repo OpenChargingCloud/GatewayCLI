@@ -20,11 +20,15 @@ needs nothing installed beside it.
 anything of its own: the sign-in, the name servers, the time servers, the
 certificates they are held to and the log, and the JSON API that serves them -
 which is [WWCP_Node](https://github.com/OpenChargingCloud/WWCP_Node), the node
-the vehicle is built on too; the gateway adds its names, its port, its roles
-and the kinds of certificate it keeps, and adds no route of its own to the
-node's JSON API yet. **The forwarding itself is not here yet.** A gateway
-started today listens for its web interface, checks its clock and resolves
-names - and passes no OCPP frame anywhere.
+the vehicle is built on too. On top of that a gateway is an OCPP node as a
+charging station and a local controller are: it **dials its CSMS** - one or
+several - over the connections written down on its **Connections** page, with
+what they sign in with, and keeps them up, as both of them do, because that is
+the same code (`OCPPDiallingNode` in
+[WWCP_OCPP](https://github.com/OpenChargingCloud/WWCP_OCPP)'s
+`WWCP_OCPP_Node`). **Not here yet:** the server that charging stations, local
+controllers and a CSMS that dials connect to, and **the forwarding itself** - a
+gateway started today dials its CSMS and passes no OCPP message on to anybody.
 
 
 ### Getting it
@@ -129,19 +133,21 @@ dotnet run --project GatewayCLI -- --authorize-ssh-key root=C:\Users\you\.ssh\id
 Without it, the first start makes up a key pair for `root` and prints its
 private key once, below the password.
 
-Who may do what is decided by three roles when the configuration file says
+Who may do what is decided by four roles when the configuration file says
 nothing else, each a user group of the HTTPExt API. What a role may do is an
 operation - `read`, `edit` or `run` - on a resource: the node's
-`configuration`, `dns`, `nts`, `certificates` and `ssh`; a gateway adds none of
-its own yet.
+`configuration`, `dns`, `nts`, `certificates`, `ssh`, `log` and the rest of
+WWCP_Node's, and the gateway's `connections` - where it dials and what it signs
+in with there, under the name a charging station gives them.
 
-| role          | may                                                                                         |
-|---------------|---------------------------------------------------------------------------------------------|
-| `viewer`      | read everything: the configuration, the certificates, the SSH server, the log               |
-| `operator`    | that, and ask a name server or a time server something                                      |
-| `systemadmin` | everything: change the name servers, the time servers, the certificates and the SSH server  |
+| role          | may                                                                                                                    |
+|---------------|------------------------------------------------------------------------------------------------------------------------|
+| `viewer`      | read everything: the configuration, the connections, the certificates, the SSH server, the log                         |
+| `support`     | see what is going on and restart an idle node, and nothing else                                                        |
+| `operator`    | read everything, ask a name server or a time server something, and test a connection                                   |
+| `systemadmin` | everything: change the name servers, the time servers, the connections, the certificates and the SSH server            |
 
-`viewer` and `systemadmin` are the node's, `operator` is the gateway's, in
+`viewer`, `support` and `systemadmin` are the node's, `operator` is the gateway's, in
 `libs/Gateway/Gateway/GatewayAccess.cs`. The account made at the first start is
 a `systemadmin`. The configuration file may add roles and say differently what
 one of them may do, in a `roles` section - see
@@ -240,6 +246,33 @@ a button that stepped the clock of a running gateway would be a surprise.
 it is checked against, when it was last checked and how far off it was then.
 
 
+### Connections
+
+Where a gateway dials is written down on the **Connections** page, as on a
+charging station and a local controller - the same page, the same store and the
+same JSON API (`/api/v1/configuration/connections`), from WWCP_OCPP's
+`WWCP_OCPP_Node`. A connection is a `ws://`, `wss://` or `ssh://` address of a
+CSMS, what it signs in with - a password or the one-time password of a TOTP
+secret, written down on the **Credentials** tab of the same page - and, over
+TLS, the client identity it shows and how its server is believed: by a root of
+the certificate store kept for `ocpp`, or by the key pins of the server's key.
+Several connections are several CSMS, each dialled on its own; one that dials
+by itself is dialled at the start and from the moment it is written down, and
+dialled again when it is lost. The keys a connection signs in with over SSH
+stand among the client identities, on their **New key** tab.
+
+The store is `ocpp-connections/` beside the configuration file. Who the gateway
+is in OCPP - `gw001` unless said otherwise - is the `ocpp` section of the
+configuration file, with the fields a local controller's has:
+
+```json
+"ocpp": { "nodeId": "gw001", "vendorName": "GraphDefined GmbH", "model": "Gateway" }
+```
+
+Everybody signed in may look at the connections, an `operator` may test one,
+and only a `systemadmin` changes them.
+
+
 ### Certificates
 
 Everything this gateway believes, the certificate it presents and every server
@@ -256,18 +289,20 @@ it, whether it is switched on and what it is kept for. So a store copied to
 another machine arrives complete, and a lost index costs labels, switches and
 usages rather than certificates.
 
-A **tlsRoot** says which time server and which name server over TLS or HTTPS
-may be believed, beside the roots of the machine the gateway runs on - and is
-told what it is for, `nts`, `dns` or both, because a root kept for the name
-servers alone vouches for no time. A **tlsServer** is a server's own
-certificate, kept so that the server can be held to it by its fingerprint; a
-server's dialog on the **NTS client** and **DNS client** pages offers the ones
-the store keeps for it. A **clientRoot** - what a client connecting to the
-gateway will have to chain to, a root or the CA below one that issues the
-clients - and a **tlsIdentity** - who the gateway is as a client, with its
-private key: what it will show a server that asks - are kept, and used by
-nothing here yet, so a page offers them no uses; a client's identity is shown
-on no listener. A **tlsServerIdentity**, with its private key, is what the web
+A **tlsRoot** says which time server, which name server over TLS or HTTPS and
+which CSMS of a `wss://` connection may be believed, beside the roots of the
+machine the gateway runs on - and is told what it is for, `nts`, `dns`, `ocpp`
+or several, because a root kept for the name servers alone vouches for no time.
+A **tlsServer** is a server's own certificate, kept so that the server can be
+held to it by its fingerprint; a server's dialog on the **NTS client** and
+**DNS client** pages offers the ones the store keeps for it. A **tlsIdentity**
+is who the gateway is as a client, with its private key: what it shows a CSMS
+that asks - the **Connections** page says which one each connection shows. It
+is brought with its key, or its key is made on the **Client identities** page
+and only its signing request and the certificate that comes back travel. A
+**clientRoot** - what a client connecting to the gateway will have to chain to,
+a root or the CA below one that issues the clients - is kept, and used by
+nothing here yet. A **tlsServerIdentity**, with its private key, is what the web
 interface, the JSON API and the sign-in show over HTTPS, where the `web`
 section says `"tls": { "certificate": "store" }` or the command line `--https`,
 and is looked after on the **Server identities** page. Any certificate may
@@ -589,12 +624,12 @@ rules now refuse ends, and the log says which rule refused whom, from where.
 |---|---|
 | `GatewayCLI/` | the program: every node's switches and banner - WWCP_Node's, in a gateway's words - and the gateway it starts with them |
 | `GatewayCLI/PKISetup.cs` | the bench script that built a test PKI; kept for what it knows, not compiled |
-| `libs/Gateway/Gateway/` | the gateway itself - what kind of node it is, its roles, the kinds of certificate it keeps, and its JSON API, the node's with nothing of its own on top yet |
+| `libs/Gateway/Gateway/` | the gateway itself - what kind of node it is, its roles, the kinds of certificate it keeps, who it is in OCPP and the OCPP node it dials with (`Gateway.Dialling.cs`), and its JSON API: the node's and that of every node that dials, with nothing of its own on top yet |
 | `libs/Gateway/Gateway/CommandLine/` | the prompt, on WWCP_Node's `NodeCLI`, which brings what every node can be typed at - and a command of the gateway's own, one file each, once there is one |
-| `libs/Gateway/Gateway/Frontend/` | the web interface: TypeScript and SCSS, bundled by webpack together with what every node's pages stand on, imported as `@node/...` |
-| `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names, its roles, which of its kinds of certificate is on which page and offered what it may be for, its web interface over HTTPS and behind a trusted proxy, its command line - and the node's conformance suite, asked of a gateway |
+| `libs/Gateway/Gateway/Frontend/` | the web interface: TypeScript and SCSS, bundled by webpack together with what every node's pages stand on, imported as `@node/...`, and the pages of the connections every node that dials shares, imported as `@ocpp/...` - whose tests run here as well |
+| `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names, its roles, which of its kinds of certificate is on which page and offered what it may be for, its web interface over HTTPS and behind a trusted proxy, its command line, that it dials its CSMS and hangs up - and the node's conformance suite, asked of a gateway |
 | `libs/WWCP_Node/` | the node below it, the same as the vehicle's: the log, the configuration file and what it may say, DNS and NTS, the certificate store, the accounts, the web server and the JSON API every node answers, in `Frontend/src` what every node's web interface shares - and in `WWCP_Node_TestKit/` what every node has to pass |
-| `libs/WWCP_OCPP/` | the protocol, and the OCPP gateway the forwarding will be built on |
+| `libs/WWCP_OCPP/` | the protocol, the OCPP gateway node the gateway speaks through and the forwarding will be built on, and in `WWCP_OCPP_Node/` what every node that dials a CSMS shares with a charging station and a local controller - its connections, how they are dialled, and their pages |
 | `.github/workflows/` | what runs on every push, and what runs at night |
 
 This program is the switches it is started with and nothing else. What a
