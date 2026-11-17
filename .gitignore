@@ -316,6 +316,14 @@ web-login.json
 # the first time something is put in it, and nobody's to commit.
 /ocpp-connections/
 
+# The stores of the station server, beside the configuration file as a local
+# controller keeps them: the charging stations that may sign in, with their
+# password hashes and TOTP secrets; the chains their certificates may lead to;
+# and the keys and certificates the port presents, private keys among them.
+/ocpp-stations.json
+/ocpp-client-trust/
+/ocpp-server-keys/
+
 # Its SSH host key, the private half of who this vehicle is to every SSH
 # client: made at the first start with the SSH server on, and kept beside the
 # configuration file. Whoever has it can pose as this vehicle to anybody who

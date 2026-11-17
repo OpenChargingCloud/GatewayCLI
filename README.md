@@ -26,9 +26,13 @@ several - over the connections written down on its **Connections** page, with
 what they sign in with, and keeps them up, as both of them do, because that is
 the same code (`OCPPDiallingNode` in
 [WWCP_OCPP](https://github.com/OpenChargingCloud/WWCP_OCPP)'s
-`WWCP_OCPP_Node`). **Not here yet:** the server that charging stations, local
-controllers and a CSMS that dials connect to, and **the forwarding itself** - a
-gateway started today dials its CSMS and passes no OCPP message on to anybody.
+`WWCP_OCPP_Node`). And it **is dialled**, as a local controller is: by the
+charging stations and local controllers below it, and by a CSMS it cannot dial,
+on its **station server** - the same server, logins, pages and section of the
+configuration file as a local controller's (`OCPPServingNode`, from the same
+place). **Not here yet:** **the forwarding itself** - a gateway started today
+lets in what is below it and dials its CSMS, and passes no OCPP message on to
+anybody.
 
 
 ### Getting it
@@ -138,14 +142,16 @@ nothing else, each a user group of the HTTPExt API. What a role may do is an
 operation - `read`, `edit` or `run` - on a resource: the node's
 `configuration`, `dns`, `nts`, `certificates`, `ssh`, `log` and the rest of
 WWCP_Node's, and the gateway's `connections` - where it dials and what it signs
-in with there, under the name a charging station gives them.
+in with there, under the name a charging station gives them - and `stations` -
+its station server and the stations that may sign in to it, under the name a
+local controller gives them.
 
 | role          | may                                                                                                                    |
 |---------------|------------------------------------------------------------------------------------------------------------------------|
-| `viewer`      | read everything: the configuration, the connections, the certificates, the SSH server, the log                         |
+| `viewer`      | read everything: the configuration, the connections, the stations, the certificates, the SSH server, the log           |
 | `support`     | see what is going on and restart an idle node, and nothing else                                                        |
 | `operator`    | read everything, ask a name server or a time server something, and test a connection                                   |
-| `systemadmin` | everything: change the name servers, the time servers, the connections, the certificates and the SSH server            |
+| `systemadmin` | everything: change the name servers, the time servers, the connections, the stations, the certificates and the SSH server |
 
 `viewer`, `support` and `systemadmin` are the node's, `operator` is the gateway's, in
 `libs/Gateway/Gateway/GatewayAccess.cs`. The account made at the first start is
@@ -271,6 +277,42 @@ configuration file, with the fields a local controller's has:
 
 Everybody signed in may look at the connections, an `operator` may test one,
 and only a `systemadmin` changes them.
+
+
+### Charging stations
+
+What is below a gateway - charging stations, local controllers - connects to
+its **station server**, which is a local controller's: the same section of the
+configuration file, the same pages and the same JSON API
+(`/api/v1/configuration/ocpp-server`), from WWCP_OCPP's `WWCP_OCPP_Node`
+(`OCPPServingNode`).
+
+- **Charging stations** switches the server on and says how it listens: the
+  `ocppServer` section - address, port, the security profiles and OCPP versions
+  it takes, the names it is reachable as, TLS, connection limits, pings,
+  logging, and OCPP over the gateway's SSH server.
+- **Logins and groups** are who may sign in, under the name its address ends
+  with: by password, one-time password, SSH key, client certificate or the key
+  pin of one, under the rules of its login group.
+- **Server certificates** are the keys and certificates the port presents -
+  made here with their signing request, or a key of its own that stations pin.
+- **Accepted chains** are what a station's own certificate has to lead to.
+
+Off unless switched on, and at port **2354** where the section names none -
+beside the web interface on 2353, and not on a local controller's 2351:
+
+```json
+"ocppServer": { "enabled": true, "port": 2354, "securityProfiles": [ 2, 3 ], "reachableAs": [ "gateway.example.org" ] }
+```
+
+A CSMS the gateway cannot dial dials it on the same port: written down on the
+**Connections** page as a connection the other end makes, it is let in under
+the name its address ends with by the credentials it names, and is a
+connection of the gateway from then on - not a station of it.
+
+The stores are `ocpp-stations.json`, `ocpp-client-trust/` and
+`ocpp-server-keys/` beside the configuration file. Everybody signed in may
+look at them; only a `systemadmin` changes them.
 
 
 ### Certificates
@@ -624,12 +666,12 @@ rules now refuse ends, and the log says which rule refused whom, from where.
 |---|---|
 | `GatewayCLI/` | the program: every node's switches and banner - WWCP_Node's, in a gateway's words - and the gateway it starts with them |
 | `GatewayCLI/PKISetup.cs` | the bench script that built a test PKI; kept for what it knows, not compiled |
-| `libs/Gateway/Gateway/` | the gateway itself - what kind of node it is, its roles, the kinds of certificate it keeps, who it is in OCPP and the OCPP node it dials with (`Gateway.Dialling.cs`), and its JSON API: the node's and that of every node that dials, with nothing of its own on top yet |
+| `libs/Gateway/Gateway/` | the gateway itself - what kind of node it is, its roles, the kinds of certificate it keeps, who it is in OCPP and the OCPP node it dials with (`Gateway.Dialling.cs`), its station server (`Gateway.Serving.cs`), and its JSON API: the node's and that of every node that dials and serves, with nothing of its own on top yet |
 | `libs/Gateway/Gateway/CommandLine/` | the prompt, on WWCP_Node's `NodeCLI`, which brings what every node can be typed at - and a command of the gateway's own, one file each, once there is one |
-| `libs/Gateway/Gateway/Frontend/` | the web interface: TypeScript and SCSS, bundled by webpack together with what every node's pages stand on, imported as `@node/...`, and the pages of the connections every node that dials shares, imported as `@ocpp/...` - whose tests run here as well |
-| `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names, its roles, which of its kinds of certificate is on which page and offered what it may be for, its web interface over HTTPS and behind a trusted proxy, its command line, that it dials its CSMS and hangs up - and the node's conformance suite, asked of a gateway |
+| `libs/Gateway/Gateway/Frontend/` | the web interface: TypeScript and SCSS, bundled by webpack together with what every node's pages stand on, imported as `@node/...`, and the pages of the connections and of the station server every node that dials and serves shares, imported as `@ocpp/...` - whose tests run here as well |
+| `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names, its roles, which of its kinds of certificate is on which page and offered what it may be for, its web interface over HTTPS and behind a trusted proxy, its command line, that it dials its CSMS and hangs up, that what is below it and a CSMS that dials are let in on its station server - and the node's conformance suite, asked of a gateway |
 | `libs/WWCP_Node/` | the node below it, the same as the vehicle's: the log, the configuration file and what it may say, DNS and NTS, the certificate store, the accounts, the web server and the JSON API every node answers, in `Frontend/src` what every node's web interface shares - and in `WWCP_Node_TestKit/` what every node has to pass |
-| `libs/WWCP_OCPP/` | the protocol, the OCPP gateway node the gateway speaks through and the forwarding will be built on, and in `WWCP_OCPP_Node/` what every node that dials a CSMS shares with a charging station and a local controller - its connections, how they are dialled, and their pages |
+| `libs/WWCP_OCPP/` | the protocol, the OCPP gateway node the gateway speaks through and the forwarding will be built on, and in `WWCP_OCPP_Node/` what every node that dials a CSMS shares with a charging station and a local controller - its connections, how they are dialled, and their pages - and what a node that is dialled by the stations below it shares with a local controller: its station server, its stores and its pages |
 | `.github/workflows/` | what runs on every push, and what runs at night |
 
 This program is the switches it is started with and nothing else. What a
