@@ -318,6 +318,15 @@ A CSMS the gateway cannot dial dials it on the same port: written down on the
 the name its address ends with by the credentials it names, and is a
 connection of the gateway from then on - not a station of it.
 
+The CSMS reads and sets the station port over OCPP as the page does: the
+component `OCPPServerController` of the gateway's own Device Model, with
+GetVariables and SetVariables addressed to the gateway itself. What waits for a
+restart is written down and answered `RebootRequired`; switching the port off
+waits until the answer is out. Who may is the resource `stations`, once the
+gateway's signature policy is switched on. A station on the port cannot ask the
+gateway what only its CSMS asks, nor send another station a request: what a
+station sends on goes up to the CSMS, in the station's own name.
+
 The stores are `ocpp-stations.json`, `ocpp-client-trust/` and
 `ocpp-server-keys/` beside the configuration file. Everybody signed in may
 look at them; only a `systemadmin` changes them.
