@@ -342,8 +342,8 @@ it recognises lives in one store, `certificates/` beside the configuration
 file - so beside the solution unless `--config` says otherwise - and is managed
 on the **Certificates**, **Identities** and **Server identities** pages or from
 the command line. A gateway keeps the four kinds of TLS, the identity its web
-interface shows over HTTPS, and none of the seven of ISO 15118, which are a
-vehicle's.
+interface shows over HTTPS, the issuing CAs, and none of the seven of ISO
+15118, which are a vehicle's.
 
 The store is the directory: one file per certificate and kind below it, and an
 `index.json` recording what a file cannot say about itself: what somebody calls
@@ -367,7 +367,11 @@ a root or the CA below one that issues the clients - is kept, and used by
 nothing here yet. A **tlsServerIdentity**, with its private key, is what the web
 interface, the JSON API and the sign-in show over HTTPS, where the `web`
 section says `"tls": { "certificate": "store" }` or the command line `--https`,
-and is looked after on the **Server identities** page. Any certificate may
+and is looked after on the **Server identities** page. A **tlsIntermediate**
+is an issuing CA: one between a root and the certificate of a CSMS that dials
+the gateway and shows its certificate alone, kept to build its chain with and
+believed nothing by itself - the chain still has to end at a root the
+connection is held to. Any certificate may
 still be marked with a usage made up - a mark nothing here acts on until a
 configuration or code names it.
 
