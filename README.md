@@ -351,6 +351,31 @@ gateway's signature policy is switched on. A station on the port cannot ask the
 gateway what only its CSMS asks, nor send another station a request: what a
 station sends on goes up to the CSMS, in the station's own name.
 
+At the command line - at the console, or over SSH by an account that may
+change the gateway's `stations` - `stationKeys` gives a station the SSH key it
+signs in with for OCPP over SSH, and `stationPins` the key pin of its TLS
+client key; each lists, and takes away again, as a local controller's does:
+
+```
+stationKeys
+stationKeys CS001
+stationKeys CS001 add ssh-ed25519 AAAA... cs001
+stationKeys CS001 remove SHA256:abc
+stationPins CS001 add 8f:3a:...:c1 bay 1
+stationPins CS001 remove sha256//jzo...
+```
+
+A station not listed yet is added by `add`, in the default group. `remove`
+takes the fingerprint `stationKeys` lists, or enough of its beginning, and ends
+the session that key opened at once; a key pin is taken away in any of the
+notations it can be given in - 64 hexadecimal digits, with or without colons,
+or curl's `sha256//` and base64. Where a key or a pin cannot let its station
+in - the station or its group switched off, a group that does not take it,
+OCPP over SSH switched off, the port unencrypted or without security profile
+3 - the answer says so beside it. Listing needs reading `stations`, which an operator
+may; giving and taking away needs changing them, which only a `systemadmin`
+may. Both commands are WWCP_OCPP_Node's, shared with the local controller.
+
 The stores are `ocpp-stations.json`, `ocpp-client-trust/` and
 `ocpp-server-keys/` beside the configuration file. Everybody signed in may
 look at them; only a `systemadmin` changes them.
@@ -496,7 +521,10 @@ gateway:2353> help
 `help` lists what can be typed, `quit` leaves, **Tab** completes and **↑**
 walks back through what was typed before. The commands every node has -
 `syncNTS` among them - come with WWCP_Node's `NodeCLI`, which the prompt is
-built on; a command of the gateway's own would be one file beside
+built on; those of every node that serves charging stations - `stationKeys`
+and `stationPins` (see [Charging stations](#charging-stations)) - come with
+WWCP_OCPP_Node, and `GatewayCLI` registers them, told the gateway's
+`stations`. A command of the gateway's own would be one file beside
 `libs/Gateway/Gateway/CommandLine/GatewayCLI.cs`, found by itself. There is
 none yet. The command line is the gateway's and not this program's: whoever
 signs in over SSH gets it whichever program runs the gateway, and
@@ -714,7 +742,7 @@ rules now refuse ends, and the log says which rule refused whom, from where.
 | `GatewayCLI/` | the program: every node's switches and banner - WWCP_Node's, in a gateway's words - and the gateway it starts with them |
 | `GatewayCLI/PKISetup.cs` | the bench script that built a test PKI; kept for what it knows, not compiled |
 | `libs/Gateway/Gateway/` | the gateway itself - what kind of node it is, its roles, the kinds of certificate it keeps, who it is in OCPP and the OCPP node it dials with (`Gateway.Dialling.cs`), its station server (`Gateway.Serving.cs`), and its JSON API: the node's and that of every node that dials and serves, with nothing of its own on top yet |
-| `libs/Gateway/Gateway/CommandLine/` | the prompt, on WWCP_Node's `NodeCLI`, which brings what every node can be typed at - and a command of the gateway's own, one file each, once there is one |
+| `libs/Gateway/Gateway/CommandLine/` | the prompt, on WWCP_Node's `NodeCLI`, which brings what every node can be typed at, with `stationKeys` and `stationPins` of WWCP_OCPP_Node registered beside them - and a command of the gateway's own, one file each, once there is one |
 | `libs/Gateway/Gateway/Frontend/` | the web interface: TypeScript and SCSS, bundled by webpack together with what every node's pages stand on, imported as `@node/...`, and the pages of the connections and of the station server every node that dials and serves shares, imported as `@ocpp/...` - whose tests run here as well |
 | `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names, its roles, which of its kinds of certificate is on which page and offered what it may be for, its web interface over HTTPS and behind a trusted proxy, its command line, that it dials its CSMS and hangs up, that what is below it and a CSMS that dials are let in on its station server - and the node's conformance suite, asked of a gateway |
 | `libs/WWCP_Node/` | the node below it, the same as the vehicle's: the log, the configuration file and what it may say, DNS and NTS, the certificate store, the accounts, the web server and the JSON API every node answers, in `Frontend/src` what every node's web interface shares - and in `WWCP_Node_TestKit/` what every node has to pass |
