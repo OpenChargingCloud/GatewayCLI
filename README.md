@@ -322,7 +322,10 @@ The CSMS reads and sets the station port over OCPP as the page does: the
 component `OCPPServerController` of the gateway's own Device Model, with
 GetVariables and SetVariables addressed to the gateway itself. What waits for a
 restart is written down and answered `RebootRequired`; switching the port off
-waits until the answer is out. Who may is the resource `stations`, once the
+waits until the answer is out. The stations that may sign in and their login
+groups are `StationLoginController` and `StationLoginGroupController`, as the
+page lists them: a station is listed with its password, key or pins, and read
+back without any secret. Who may is the resource `stations`, once the
 gateway's signature policy is switched on. A station on the port cannot ask the
 gateway what only its CSMS asks, nor send another station a request: what a
 station sends on goes up to the CSMS, in the station's own name.
