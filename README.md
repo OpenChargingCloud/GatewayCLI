@@ -294,9 +294,27 @@ configuration file, the same pages and the same JSON API
 - **Logins and groups** are who may sign in, under the name its address ends
   with: by password, one-time password, SSH key, client certificate or the key
   pin of one, under the rules of its login group.
-- **Server certificates** are the keys and certificates the port presents -
-  made here with their signing request, or a key of its own that stations pin.
 - **Accepted chains** are what a station's own certificate has to lead to.
+
+What the port presents is the certificate store's (see
+[Certificates](#certificates)): a **tlsServerIdentity** told the listener
+`ocpp` - or told no listener, which is every listener - looked after on the
+**Server identities** page with the web interface's. A certificate an authority
+issued is brought there, or its key is made on the gateway and only its signing
+request and the certificate travel. Or the port shows a **server key** of its
+own, which the stations pin rather than check a chain: made on the same page,
+or with `POST /api/v1/certificates/serverKeys/ocpp`, and shown in a self-signed
+carrier certificate valid from 1970 to 9999 wherever no certificate issued for
+the key is valid. A new key is announced as the next one first - its key pin
+handed to the stations - and only shown once somebody switches to it
+(`POST /api/v1/certificates/serverKeys/ocpp/switch`, which may name the key pin
+it expects); a key never takes the place of what is shown by itself, and the
+current key's carrier cannot be deleted or switched off. The CSMS is told of
+every switch over OCPP. Where nothing is valid, the port goes on showing the
+last certificate it showed rather than none, so that a station is never locked
+out by a certificate that ran out. Whether the port encrypts at all is decided
+when the station server starts: with something to present, and security profile
+2 or 3.
 
 Off unless switched on, and at port **2354** where the section names none -
 beside the web interface on 2353, and not on a local controller's 2351:
@@ -308,7 +326,10 @@ beside the web interface on 2353, and not on a local controller's 2351:
 `"http3": true` takes WebSockets over HTTP/3 as well, on the UDP port of the
 same number - 2354/udp here, which a firewall has to let through as well. Off
 where the file says nothing, only on a port that is encrypted, and switched on
-and off at once on the **Charging stations** page. The section is the one a
+and off at once on the **Charging stations** page. QUIC is handed its
+certificate when it starts, so HTTP/3 is started again whenever the port shows
+another one - a key switched to, a certificate that became valid or ran out;
+a station connected over HTTP/3 at that moment connects again. The section is the one a
 charging station has; a gateway has one port for every version of OCPP, offers
 OCPP 1.6 where `subprotocols` names `"ocpp1.6"`, and refuses `port16`, which is
 a station's.
@@ -367,7 +388,9 @@ a root or the CA below one that issues the clients - is kept, and used by
 nothing here yet. A **tlsServerIdentity**, with its private key, is what the web
 interface, the JSON API and the sign-in show over HTTPS, where the `web`
 section says `"tls": { "certificate": "store" }` or the command line `--https`,
-and is looked after on the **Server identities** page. A **tlsIntermediate**
+and is looked after on the **Server identities** page - as is what the
+station server shows, told the listener `ocpp` (see
+[Charging stations](#charging-stations)). A **tlsIntermediate**
 is an issuing CA: one between a root and the certificate of a CSMS that dials
 the gateway and shows its certificate alone, kept to build its chain with and
 believed nothing by itself - the chain still has to end at a root the
