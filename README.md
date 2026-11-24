@@ -422,6 +422,11 @@ CSMS nobody chose for it; forward the station elsewhere first. The targets are
 kept with the logins, in `websocket-logins.json`. Who may is the resource
 `stations`, as for the logins.
 
+The **Connections** page says of each CSMS how many stations it gets: how many
+go to it now, how many targets name it first, how many name it after another
+CSMS, and - for the CSMS in charge - how many name no target. A station whose
+login is switched off is not counted.
+
 
 ### Certificates
 
