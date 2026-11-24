@@ -30,9 +30,10 @@ the same code (`OCPPDiallingNode` in
 charging stations and local controllers below it, and by a CSMS it cannot dial,
 on its **station server** - the same server, logins, pages and section of the
 configuration file as a local controller's (`OCPPServingNode`, from the same
-place). **Not here yet:** **the forwarding itself** - a gateway started today
-lets in what is below it and dials its CSMS, and passes no OCPP message on to
-anybody.
+place). And it **forwards**: what a charging station sends up goes to a CSMS,
+and what a CSMS asks of a station goes down to it - each station **fixed to
+one CSMS, or to a priority list of them**, its forwarding target (see
+[Forwarding](#forwarding)).
 
 
 ### Getting it
@@ -376,9 +377,50 @@ OCPP over SSH switched off, the port unencrypted or without security profile
 may; giving and taking away needs changing them, which only a `systemadmin`
 may. Both commands are WWCP_OCPP_Node's, shared with the local controller.
 
-The stores are `ocpp-stations.json`, `ocpp-client-trust/` and
+The stores are `websocket-logins.json`, `ocpp-client-trust/` and
 `ocpp-server-keys/` beside the configuration file. Everybody signed in may
 look at them; only a `systemadmin` changes them.
+
+
+### Forwarding
+
+A gateway passes on what is not for itself, as an IP router does: what a
+charging station sends up goes to a CSMS, what a CSMS asks of a station goes
+down to that station, and each answer goes back over the connection its
+request came over. Where it goes is said per station, on the **WebSocket
+logins** page:
+
+- A **forwarding target** is a priority list of the gateway's CSMS - its peers,
+  as the **Connections** page writes them down, each with however many
+  endpoints it has - even where it holds one. What a station forwarded to it
+  sends up goes to the first of them that is connected now; where none is, the
+  station is told so by an OCPP error, and nothing goes to another CSMS.
+- A station whose login names a target is **fixed** to it, both ways: no CSMS
+  outside its target reaches it.
+- A station that names none goes to the **CSMS in charge** of the gateway - the
+  primary, the oldest connection written down -, as every station did before
+  there were targets, and only that CSMS reaches it.
+
+Forwarding is a switch of its own, the section `forwarding` of the
+configuration file: `{ "enabled": false }` refuses whatever is not for the
+gateway itself, at once and without a restart; left out, the gateway forwards,
+as its kind does (a local controller forwards too, a charging station and a
+CSMS do not). The page shows it above the targets.
+
+At the command line `stationTargets` does the same:
+
+```
+stationTargets
+stationTargets set site-1 <peer> <peer>
+stationTargets forward CS001 site-1
+stationTargets forward CS001 none
+stationTargets remove site-1
+```
+
+A target a station is forwarded to is not removed - its station would go to a
+CSMS nobody chose for it; forward the station elsewhere first. The targets are
+kept with the logins, in `websocket-logins.json`. Who may is the resource
+`stations`, as for the logins.
 
 
 ### Certificates
@@ -521,8 +563,9 @@ gateway:2353> help
 `help` lists what can be typed, `quit` leaves, **Tab** completes and **↑**
 walks back through what was typed before. The commands every node has -
 `syncNTS` among them - come with WWCP_Node's `NodeCLI`, which the prompt is
-built on; those of every node that serves charging stations - `stationKeys`
-and `stationPins` (see [Charging stations](#charging-stations)) - come with
+built on; those of every node that serves charging stations - `stationKeys`,
+`stationPins` (see [Charging stations](#charging-stations)) and
+`stationTargets` (see [Forwarding](#forwarding)) - come with
 WWCP_OCPP_Node, and `GatewayCLI` registers them, told the gateway's
 `stations`. A command of the gateway's own would be one file beside
 `libs/Gateway/Gateway/CommandLine/GatewayCLI.cs`, found by itself. There is
@@ -742,11 +785,11 @@ rules now refuse ends, and the log says which rule refused whom, from where.
 | `GatewayCLI/` | the program: every node's switches and banner - WWCP_Node's, in a gateway's words - and the gateway it starts with them |
 | `GatewayCLI/PKISetup.cs` | the bench script that built a test PKI; kept for what it knows, not compiled |
 | `libs/Gateway/Gateway/` | the gateway itself - what kind of node it is, its roles, the kinds of certificate it keeps, who it is in OCPP and the OCPP node it dials with (`Gateway.Dialling.cs`), its station server (`Gateway.Serving.cs`), and its JSON API: the node's and that of every node that dials and serves, with nothing of its own on top yet |
-| `libs/Gateway/Gateway/CommandLine/` | the prompt, on WWCP_Node's `NodeCLI`, which brings what every node can be typed at, with `stationKeys` and `stationPins` of WWCP_OCPP_Node registered beside them - and a command of the gateway's own, one file each, once there is one |
+| `libs/Gateway/Gateway/CommandLine/` | the prompt, on WWCP_Node's `NodeCLI`, which brings what every node can be typed at, with `stationKeys`, `stationPins` and `stationTargets` of WWCP_OCPP_Node registered beside them - and a command of the gateway's own, one file each, once there is one |
 | `libs/Gateway/Gateway/Frontend/` | the web interface: TypeScript and SCSS, bundled by webpack together with what every node's pages stand on, imported as `@node/...`, and the pages of the connections and of the station server every node that dials and serves shares, imported as `@ocpp/...` - whose tests run here as well |
 | `libs/Gateway/GatewayTests/` | what kind of node a gateway is - its names, its roles, which of its kinds of certificate is on which page and offered what it may be for, its web interface over HTTPS and behind a trusted proxy, its command line, that it dials its CSMS and hangs up, that what is below it and a CSMS that dials are let in on its station server - and the node's conformance suite, asked of a gateway |
 | `libs/WWCP_Node/` | the node below it, the same as the vehicle's: the log, the configuration file and what it may say, DNS and NTS, the certificate store, the accounts, the web server and the JSON API every node answers, in `Frontend/src` what every node's web interface shares - and in `WWCP_Node_TestKit/` what every node has to pass |
-| `libs/WWCP_OCPP/` | the protocol, the OCPP gateway node the gateway speaks through and the forwarding will be built on, and in `WWCP_OCPP_Node/` what every node that dials a CSMS shares with a charging station and a local controller - its connections, how they are dialled, and their pages - and what a node that is dialled by the stations below it shares with a local controller: its station server, its stores and its pages |
+| `libs/WWCP_OCPP/` | the protocol, the OCPP gateway node the gateway speaks through and forwards through, and in `WWCP_OCPP_Node/` what every node that dials a CSMS shares with a charging station and a local controller - its connections, how they are dialled, and their pages - and what a node that is dialled by the stations below it shares with a local controller: its station server, its stores and its pages |
 | `.github/workflows/` | what runs on every push, and what runs at night |
 
 This program is the switches it is started with and nothing else. What a
