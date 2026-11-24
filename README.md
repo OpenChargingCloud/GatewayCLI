@@ -427,6 +427,15 @@ go to it now, how many targets name it first, how many name it after another
 CSMS, and - for the CSMS in charge - how many name no target. A station whose
 login is switched off is not counted.
 
+**OCPP 1.6** is passed through the same way, where the station port offers
+`"ocpp1.6"`: a charging station of OCPP 1.6 goes to a central system of OCPP 1.6
+- a connection written down as OCPP 1.6 -, by the same targets and with the same
+gates, and a central system of OCPP 1.6 reaches the stations of its targets. A
+target forwards a station to the peers of its own version only: a peer that
+speaks only the other version is passed over. Nothing is translated between the
+versions, and the gateway is no charge point of its own to a central system of
+OCPP 1.6: it sends it no BootNotification.
+
 
 ### Certificates
 
