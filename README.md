@@ -459,6 +459,12 @@ after which the station is told it was not taken. What the gateway knows of a
 station - its BootNotification, its connectors - it learns from what the
 station sends after the gateway started.
 
+The **Connections** page says of each CSMS which of the connected stations are
+at it now (**At it now**, the first twenty by name) - where one turned a station
+away, or a station is on its way back, that is where the station is, not where
+its target says - and, where something is held back for it (**Held back**), how
+many messages, since when, and how many charging sessions belong to it.
+
 
 ### Certificates
 
