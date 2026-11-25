@@ -393,8 +393,9 @@ logins** page:
 - A **forwarding target** is a priority list of the gateway's CSMS - its peers,
   as the **Connections** page writes them down, each with however many
   endpoints it has - even where it holds one. What a station forwarded to it
-  sends up goes to the first of them that is connected now; where none is, the
-  station is told so by an OCPP error, and nothing goes to another CSMS.
+  sends up goes to the first of them that is connected now and did not turn it
+  away; where none is, the station is told so by an OCPP error - or answered by
+  the gateway, see below -, and nothing goes to another CSMS.
 - A station whose login names a target is **fixed** to it, both ways: no CSMS
   outside its target reaches it.
 - A station that names none goes to the **CSMS in charge** of the gateway - the
@@ -435,6 +436,28 @@ target forwards a station to the peers of its own version only: a peer that
 speaks only the other version is passed over. Nothing is translated between the
 versions, and the gateway is no charge point of its own to a central system of
 OCPP 1.6: it sends it no BootNotification.
+
+**When a CSMS goes**, its stations go on to the next CSMS of their target, and
+back to it when it returns - and the CSMS a station comes to is told who it is
+first: the gateway sends it, in the station's name, the station's last
+BootNotification and the last state of each of its connectors. The station
+sees none of it. A CSMS that turns the station away (BootNotification
+`Rejected`) is passed over until it connects anew. A **charging session** stays
+with the CSMS it began at - in OCPP 2.1 the `transactionId` of its first
+TransactionEvent, in OCPP 1.6 the one its StartTransaction was answered with -:
+what follows of it while that CSMS is not connected, the gateway answers itself
+and holds back, in `ocpp-buffer/` beside the configuration file, and sends it in
+the order it came once the CSMS is back, before anything newer of the session.
+Where none of a station's CSMS is connected, the gateway answers a Heartbeat
+with its own time and a StatusNotification (the state is told the CSMS later),
+and holds back the parts of a session; it answers nothing else - an Authorize
+least of all. Its answer to a TransactionEvent says that it was taken, and no
+more: there is no `idTokenInfo` in it. What the gateway answered, the station
+does not keep for itself, as it believes itself online; so what is held back is
+not given up while its CSMS is written down - up to 10,000 messages per CSMS,
+after which the station is told it was not taken. What the gateway knows of a
+station - its BootNotification, its connectors - it learns from what the
+station sends after the gateway started.
 
 
 ### Certificates
