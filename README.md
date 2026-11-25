@@ -1,5 +1,7 @@
 # GatewayCLI
 
+![The EV charging test environment, the gateway (GW) highlighted](docs/EVChargingTestEnvironment.svg)
+
 [![CI](https://github.com/OpenChargingCloud/GatewayCLI/actions/workflows/ci.yml/badge.svg)](https://github.com/OpenChargingCloud/GatewayCLI/actions/workflows/ci.yml)
 [![Nightly](https://github.com/OpenChargingCloud/GatewayCLI/actions/workflows/nightly.yml/badge.svg)](https://github.com/OpenChargingCloud/GatewayCLI/actions/workflows/nightly.yml)
 
